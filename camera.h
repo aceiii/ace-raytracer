@@ -9,6 +9,7 @@ class camera {
 public:
     double  aspect_ratio = 1.0;
     int     image_width = 100;
+    int     samples_per_pixel = 100;
 
     void render(const hittable& world) {
         initialize();
@@ -18,11 +19,12 @@ public:
         for (int j = 0; j < image_height; j += 1) {
             std::clog << "\rScanlins remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i += 1) {
-                auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-                auto ray_direction = pixel_center - center;
-                ray r(center, ray_direction);
-                colour pixel_colour = ray_colour(r, world);
-                write_colour(std::cout, pixel_colour);
+                colour pixel_colour(0, 0, 0);
+                for (int sample = 0; sample < samples_per_pixel; sample += 1) {
+                    ray r = get_ray(i, j);
+                    pixel_colour += ray_colour(r, world);
+                }
+                write_colour(std::cout, pixel_colour, samples_per_pixel);
             }
         }
 
@@ -68,6 +70,25 @@ private:
         vec3 unit_direction = unit_vector(r.direction());
         auto a = 0.5 * (unit_direction.y() + 1.0);
         return lerp(a, colour(1.0, 1.0, 1.0), colour(0.5, 0.7, 1.0));
+    }
+
+    ray get_ray(int i, int j) const {
+        // get randomly sampled camera ray for pixel at location i,j
+
+        auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+        auto pixel_sample = pixel_center + pixel_sample_square();
+
+        auto ray_origin = center;
+        auto ray_direction = pixel_sample - ray_origin;
+
+        return ray(ray_origin, ray_direction);
+    }
+
+    vec3 pixel_sample_square() const {
+        // return random point in square surrounding pixel at origin
+        auto px = -0.5 * random_double();
+        auto py = -0.5 * random_double();
+        return (px * pixel_delta_u) + (py * pixel_delta_v);
     }
 
     colour lerp(double a, const colour& start, const colour& end) const {
