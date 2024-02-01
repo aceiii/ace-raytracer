@@ -2,7 +2,7 @@
 
 all: main
 
-main: main.cpp colour.h hittable.h hittable_list.h interval.h rtweekend.h sphere.h vec3.h
+main: main.cpp camera.h colour.h hittable.h hittable_list.h interval.h rtweekend.h sphere.h vec3.h
 	g++ -std=c++17 main.cpp -o main
 
 run: main
