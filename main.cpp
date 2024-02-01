@@ -4,8 +4,14 @@
 
 #include <iostream>
 
+colour lerp(double a, const colour& start, const colour& end) {
+    return (1.0 - a) * start + a * end;
+}
+
 colour ray_colour(const ray& r) {
-    return colour(0, 0, 0);
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5 * (unit_direction.y() + 1.0);
+    return lerp(a, colour(1.0, 1.0, 1.0), colour(0.5, 0.7, 1.0));
 }
 
 int main() {
