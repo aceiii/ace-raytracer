@@ -13,6 +13,8 @@ public:
     int     samples_per_pixel = 10;
     int     max_depth = 10;
 
+    double vfov = 90;
+
     void render(const hittable& world) {
         initialize();
 
@@ -43,12 +45,14 @@ private:
     void initialize() {
         image_height = static_cast<int>(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;
+        center = point3(0, 0, 0);
 
         // Camera
         auto focal_length = 1.0;
-        auto viewport_height = 2.0;
+        auto theta = degrees_to_radians(vfov);
+        auto h = tan(theta / 2);
+        auto viewport_height = 2 * h * focal_length;
         auto viewport_width = viewport_height * (static_cast<double>(image_width) / image_height);
-        center = point3(0, 0, 0);
 
         // Vectors across and down the viewport edges
         auto viewport_u = vec3(viewport_width, 0, 0);
