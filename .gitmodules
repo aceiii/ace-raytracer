@@ -1,0 +1,9 @@
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "external/taskflow"]
+	path = external/taskflow
+	url = https://github.com/taskflow/taskflow.git
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt.git
