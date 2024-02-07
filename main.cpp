@@ -5,8 +5,14 @@
 #include "sphere.h"
 
 #include <iostream>
+#include <fmt/core.h>
+#include <spdlog/spdlog.h>
+#include <stb_image_write.h>
 
 int main() {
+    //spdlog::set_level(spdlog::level::debug);
+    spdlog::info("Starting raytracer!");
+
     hittable_list world;
 
     auto ground_material = make_shared<lambertian>(colour(0.5, 0.5, 0.5));
@@ -52,7 +58,7 @@ int main() {
     camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 400;
-    cam.samples_per_pixel = 50;
+    cam.samples_per_pixel = 10;
     cam.max_depth = 50;
     cam.vfov = 20;
     cam.lookfrom = point3(13, 2, 3);
@@ -60,7 +66,11 @@ int main() {
     cam.vup = vec3(0, 1, 0);
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
-    cam.render(world);
+
+    auto bmp = cam.render(world);
+    bmp->write_to_file("output.png");
+
+    spdlog::info("Done!");
 
     return 0;
 }

@@ -5,6 +5,10 @@
 #include "colour.h"
 #include "hittable.h"
 #include "material.h"
+#include "bitmap.h"
+
+#include <memory>
+#include <spdlog/spdlog.h>
 
 class camera {
 public:
@@ -21,24 +25,29 @@ public:
     double defocus_angle = 0; // variation of angle of rays through each pixel
     double focus_dist = 10; // distance from camera lookfrom to perfect focus
 
-    void render(const hittable& world) {
+    void init() {
+        initialize();
+    }
+
+    std::unique_ptr<bitmap> render(const hittable& world) {
         initialize();
 
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+        auto out_bmp = std::make_unique<bitmap>(image_width, image_height);
 
         for (int j = 0; j < image_height; j += 1) {
-            std::clog << "\rScanlins remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i += 1) {
                 colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; sample += 1) {
                     ray r = get_ray(i, j);
                     pixel_colour += ray_colour(r, max_depth, world);
                 }
-                write_colour(std::cout, pixel_colour, samples_per_pixel);
+
+                pixel& px = out_bmp->pixel_at(i, j);
+                write_colour(px, pixel_colour, samples_per_pixel);
+                spdlog::debug("output pixel at ({}, {}) -> ({}, {}, {})", i, j, px.r, px.g, px.b);
             }
         }
-
-        std::clog << "\rDone.                        \n";
+        return out_bmp;
     }
 
 private:
@@ -52,6 +61,8 @@ private:
     vec3    defocus_disk_v;
 
     void initialize() {
+        spdlog::info("Initializing camera:");
+
         image_height = static_cast<int>(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;
         center = lookfrom;
@@ -84,6 +95,9 @@ private:
         auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2));
         defocus_disk_u = u * defocus_radius;
         defocus_disk_v = v * defocus_radius;
+
+        spdlog::info("  image dimensions: {} x {}", image_width, image_height);
+        spdlog::info("  samples per pixel: {}", samples_per_pixel);
     }
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const {
