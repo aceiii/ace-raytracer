@@ -3,4 +3,4 @@ Thumbs.db
 build/
 dist/
 main
-output.ppm
+output.*
