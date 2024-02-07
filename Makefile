@@ -1,12 +1,21 @@
-.PHONY: run clean
 
-all: main
+main: build/main
+	cp ./build/main main
 
-main: main.cpp camera.h colour.h hittable.h hittable_list.h interval.h rtweekend.h sphere.h vec3.h
-	g++ -std=c++17 main.cpp -o main
+build/main: build
+	$(MAKE) rebuild
 
-run: main
-	./main > output.ppm
+rebuild:
+	cmake --build ./build
+
+build:
+	cmake -B build -S . -G Ninja
 
 clean:
-	rm main output.ppm
+	cmake --build ./build --target clean
+
+run: main
+	./main
+
+
+.PHONY: run  rebuild clean
