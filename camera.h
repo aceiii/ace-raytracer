@@ -6,8 +6,10 @@
 #include "hittable.h"
 #include "material.h"
 #include "bitmap.h"
+#include "timing.h"
 
 #include <memory>
+#include <fmt/color.h>
 #include <spdlog/spdlog.h>
 
 class camera {
@@ -30,23 +32,41 @@ public:
     }
 
     std::unique_ptr<bitmap> render(const hittable& world) {
+        using namespace fmt;
+
         initialize();
 
         auto out_bmp = std::make_unique<bitmap>(image_width, image_height);
 
-        for (int j = 0; j < image_height; j += 1) {
-            for (int i = 0; i < image_width; i += 1) {
+        spdlog::info("Rendering scene...");
+
+        timer time;
+        int last_progress = 0;
+
+        for (int y = 0; y < image_height; y += 1) {
+            int progress = (static_cast<double>(y) / image_height) * 100.0;
+            bool show_progress = progress == 0 || progress >= 99 || (progress - last_progress >= 10);
+
+            if (show_progress) {
+                last_progress = progress;
+                spdlog::debug("Progress... {}%", progress);
+            }
+
+            for (int x = 0; x < image_width; x += 1) {
                 colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; sample += 1) {
-                    ray r = get_ray(i, j);
+                    ray r = get_ray(x, y);
                     pixel_colour += ray_colour(r, max_depth, world);
                 }
 
-                pixel& px = out_bmp->pixel_at(i, j);
+                pixel& px = out_bmp->pixel_at(x, y);
                 write_colour(px, pixel_colour, samples_per_pixel);
-                spdlog::debug("output pixel at ({}, {}) -> ({}, {}, {})", i, j, px.r, px.g, px.b);
+                spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
             }
         }
+
+        auto diff = time.duration<timer::milliseconds>();
+        spdlog::info("Rendering completed in {}", format(fg(color::aqua), "{:.2f}ms", diff));
         return out_bmp;
     }
 
@@ -61,6 +81,8 @@ private:
     vec3    defocus_disk_v;
 
     void initialize() {
+        using namespace fmt;
+
         spdlog::info("Initializing camera:");
 
         image_height = static_cast<int>(image_width / aspect_ratio);
@@ -96,8 +118,8 @@ private:
         defocus_disk_u = u * defocus_radius;
         defocus_disk_v = v * defocus_radius;
 
-        spdlog::info("  image dimensions: {} x {}", image_width, image_height);
-        spdlog::info("  samples per pixel: {}", samples_per_pixel);
+        spdlog::info("  image dimensions: {}", format(fg(color::aqua), "{} x {}", image_width, image_height));
+        spdlog::info("  samples per pixel: {}", styled(samples_per_pixel, fg(color::aqua)));
     }
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const {

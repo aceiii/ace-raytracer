@@ -3,6 +3,7 @@
 
 #include "pixel.h"
 
+#include <fmt/color.h>
 #include <spdlog/spdlog.h>
 #include <stb_image_write.h>
 
@@ -26,7 +27,9 @@ public:
     }
 
     void write_to_file(std::string filename) {
-        spdlog::info("Writing bitmap to file: {}", filename);
+        using namespace fmt;
+
+        spdlog::info("Writing bitmap to file: {}", styled(filename, fg(color(color::aqua))));
 
         const int channels = 4;
 

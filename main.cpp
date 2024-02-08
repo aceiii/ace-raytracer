@@ -10,7 +10,7 @@
 #include <stb_image_write.h>
 
 int main() {
-    //spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::debug);
     spdlog::info("Starting raytracer!");
 
     hittable_list world;
