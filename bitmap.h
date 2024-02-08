@@ -2,6 +2,7 @@
 #define __BITMAP_H__
 
 #include "pixel.h"
+#include "timing.h"
 
 #include <fmt/color.h>
 #include <spdlog/spdlog.h>
@@ -32,12 +33,14 @@ public:
         spdlog::info("Writing bitmap to file: {}", styled(filename, fg(color(color::aqua))));
 
         const int channels = 4;
+        timer time;
 
         auto img = stbi_write_png(filename.c_str(), width, height, channels, data, channels * width);
         if (!img) {
             spdlog::error("Failed to write file");
         } else {
-            spdlog::info("Write to file complete.");
+            auto diff = time.duration<timer::milliseconds>();
+            spdlog::info("Write to file complete. Took {}", format(fg(color::aqua), "{:.2f}ms", diff));
         }
     }
 };

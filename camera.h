@@ -11,6 +11,7 @@
 #include <memory>
 #include <fmt/color.h>
 #include <spdlog/spdlog.h>
+#include <taskflow/taskflow.hpp>
 
 class camera {
 public:
@@ -37,33 +38,48 @@ public:
         initialize();
 
         auto out_bmp = std::make_unique<bitmap>(image_width, image_height);
+        tf::Executor executor;
+        tf::Taskflow taskflow;
 
         spdlog::info("Rendering scene...");
 
         timer time;
-        int last_progress = 0;
+
+        std::atomic<int> completed_scanlines = 0;
+        std::atomic<int> last_progress = -1;
 
         for (int y = 0; y < image_height; y += 1) {
-            int progress = (static_cast<double>(y) / image_height) * 100.0;
-            bool show_progress = progress == 0 || progress >= 99 || (progress - last_progress >= 10);
+            taskflow.emplace([&, y, this](tf::Subflow &subflow) {
+                timer row_time;
 
-            if (show_progress) {
-                last_progress = progress;
-                spdlog::debug("Progress... {}%", progress);
-            }
+                for (int x = 0; x < image_width; x += 1) {
+                    subflow.emplace([&, x, y, this]() {
+                        colour pixel_colour(0, 0, 0);
+                        for (int sample = 0; sample < samples_per_pixel; sample += 1) {
+                            ray r = get_ray(x, y);
+                            pixel_colour += ray_colour(r, max_depth, world);
+                        }
 
-            for (int x = 0; x < image_width; x += 1) {
-                colour pixel_colour(0, 0, 0);
-                for (int sample = 0; sample < samples_per_pixel; sample += 1) {
-                    ray r = get_ray(x, y);
-                    pixel_colour += ray_colour(r, max_depth, world);
+                        pixel& px = out_bmp->pixel_at(x, y);
+                        write_colour(px, pixel_colour, samples_per_pixel);
+                        spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
+                    });
                 }
 
-                pixel& px = out_bmp->pixel_at(x, y);
-                write_colour(px, pixel_colour, samples_per_pixel);
-                spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
-            }
+                subflow.join();
+
+                auto val = completed_scanlines++;
+                int progress = (static_cast<double>(val) / image_height) * 100.0;
+                auto diff = row_time.duration<timer::milliseconds>();
+
+                if (last_progress.load() != progress && progress % 10 == 0 || progress >= 99) {
+                    last_progress.store(progress);
+                    spdlog::debug("Progress {}%, scanline took {:.2f}ms", progress, diff);
+                }
+            });
         }
+
+        executor.run(taskflow).wait();
 
         auto diff = time.duration<timer::milliseconds>();
         spdlog::info("Rendering completed in {}", format(fg(color::aqua), "{:.2f}ms", diff));
