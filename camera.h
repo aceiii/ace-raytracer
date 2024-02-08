@@ -8,6 +8,7 @@
 #include "bitmap.h"
 #include "timing.h"
 
+#include <thread>
 #include <memory>
 #include <fmt/color.h>
 #include <spdlog/spdlog.h>
@@ -19,6 +20,7 @@ public:
     int     image_width = 100;
     int     samples_per_pixel = 10;
     int     max_depth = 10;
+    int     threads = std::thread::hardware_concurrency();
 
     double vfov = 90;
     point3 lookfrom = point3(0, 0, -1); // center of camera
@@ -38,7 +40,7 @@ public:
         initialize();
 
         auto out_bmp = std::make_unique<bitmap>(image_width, image_height);
-        tf::Executor executor;
+        tf::Executor executor(threads);
         tf::Taskflow taskflow;
 
         spdlog::info("Rendering scene...");
@@ -72,7 +74,7 @@ public:
                 int progress = (static_cast<double>(val) / image_height) * 100.0;
                 auto diff = row_time.duration<timer::milliseconds>();
 
-                if (last_progress.load() != progress && progress % 10 == 0 || progress >= 99) {
+                if (last_progress.load() != progress && (progress % 10 == 0 || progress >= 99)) {
                     last_progress.store(progress);
                     spdlog::debug("Progress {}%, scanline took {:.2f}ms", progress, diff);
                 }
