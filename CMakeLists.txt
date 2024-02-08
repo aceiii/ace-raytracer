@@ -10,7 +10,8 @@ set(SOURCE_FILES
     stb_impl.cpp
 )
 
-set(SPDLOG_FMT_EXTERNAL ON)
+# set(SPDLOG_FMT_EXTERNAL ON)
+set(SPDLOG_FMT_EXTERNAL_HO ON)
 
 set(TF_BUILD_TESTS OFF)
 set(TF_BUILD_EXAMPLES OFF)
@@ -27,6 +28,7 @@ add_subdirectory(external/taskflow)
 # stb
 target_include_directories(${EXE_NAME} PRIVATE external/stb)
 
+target_link_libraries(${EXE_NAME} fmt)
 target_link_libraries(${EXE_NAME} spdlog)
 target_link_libraries(${EXE_NAME} Taskflow)
 
