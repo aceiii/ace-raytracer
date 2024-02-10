@@ -10,8 +10,8 @@
 
 #include <thread>
 #include <memory>
-#include <fmt/color.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/bundled/color.h>
 #include <taskflow/taskflow.hpp>
 
 class camera {

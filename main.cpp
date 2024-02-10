@@ -6,8 +6,8 @@
 
 #include <iostream>
 #include <thread>
-#include <fmt/core.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/bundled/core.h>
 #include <stb_image_write.h>
 
 int main() {

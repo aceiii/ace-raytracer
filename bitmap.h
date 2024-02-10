@@ -4,8 +4,8 @@
 #include "pixel.h"
 #include "timing.h"
 
-#include <fmt/color.h>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/bundled/color.h>
 #include <stb_image_write.h>
 
 class bitmap {
