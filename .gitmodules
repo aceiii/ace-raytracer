@@ -4,9 +4,6 @@
 [submodule "external/taskflow"]
 	path = external/taskflow
 	url = https://github.com/taskflow/taskflow.git
-[submodule "external/fmt"]
-	path = external/fmt
-	url = https://github.com/fmtlib/fmt.git
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/nothings/stb.git
