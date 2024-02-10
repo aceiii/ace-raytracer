@@ -1,23 +1,25 @@
 #ifndef __INTERVAL_H__
 #define __INTERVAL_H__
 
+#include "rtweekend.h"
+
 class interval {
 public:
     double min, max;
 
-    interval(): min(+infinity), max(-infinity) {} // Default interval is empty
+    inline interval(): min(+infinity), max(-infinity) {} // Default interval is empty
 
-    interval(double _min, double _max): min(_min), max(_max) {}
+    inline interval(double _min, double _max): min(_min), max(_max) {}
 
-    bool contains(double x) const {
+    inline bool contains(double x) const {
         return min <= x && x <= max;
     }
 
-    bool surrounds(double x) const {
+    inline bool surrounds(double x) const {
         return min < x && x < max;
     }
 
-    double clamp(double x) const {
+    inline double clamp(double x) const {
         if (x < min) {
             return min;
         }

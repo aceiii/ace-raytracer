@@ -7,7 +7,11 @@ set(EXE_NAME main)
 
 set(SOURCE_FILES
     main.cpp
-    stb_impl.cpp
+    colour.cpp
+    sphere.cpp
+    hittable_list.cpp
+    raylib_window.cpp
+    # stb_impl.cpp
 )
 
 set(TF_BUILD_TESTS OFF)
@@ -20,10 +24,17 @@ add_executable(${EXE_NAME} ${SOURCE_FILES})
 
 add_subdirectory(external/spdlog)
 add_subdirectory(external/taskflow)
+add_subdirectory(external/raylib)
 
 # stb
 target_include_directories(${EXE_NAME} PRIVATE external/stb)
 
 target_link_libraries(${EXE_NAME} spdlog)
 target_link_libraries(${EXE_NAME} Taskflow)
+target_link_libraries(${EXE_NAME} raylib)
 
+if (APPLE)
+    target_link_libraries(${EXE_NAME} "-framework IOKit")
+    target_link_libraries(${EXE_NAME} "-framework Cocoa")
+    target_link_libraries(${EXE_NAME} "-framework OpenGL")
+endif()

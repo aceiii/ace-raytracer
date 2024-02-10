@@ -3,12 +3,14 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "raylib_window.h"
 
 #include <iostream>
 #include <thread>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bundled/core.h>
 #include <stb_image_write.h>
+#include <taskflow/taskflow.hpp>
 
 int main() {
     spdlog::set_level(spdlog::level::debug);
@@ -68,10 +70,28 @@ int main() {
     cam.vup = vec3(0, 1, 0);
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
-    cam.threads = std::thread::hardware_concurrency();
+    cam.init();
 
-    auto bmp = cam.render(world);
-    bmp->write_to_file("output.png");
+    auto dims = cam.get_image_dimensions();
+    auto bmp = std::make_shared<bitmap>(dims.width, dims.height);
+
+    int num_threads = std::thread::hardware_concurrency();
+    tf::Executor executor(num_threads);
+    tf::Taskflow taskflow;
+
+    taskflow.emplace([&world, &cam, bmp](tf::Subflow subflow) {
+        cam.render(world, subflow, bmp);
+    });
+
+    auto future = executor.run(taskflow);
+    // future.wait();
+
+    // bmp->write_to_file("output.png");
+
+    raylib_window rw;
+    rw.run(cam, world, bmp);
+
+    future.wait();
 
     spdlog::info("Done!");
 

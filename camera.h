@@ -14,13 +14,17 @@
 #include <spdlog/fmt/bundled/color.h>
 #include <taskflow/taskflow.hpp>
 
+struct dimensions {
+    int width;
+    int height;
+};
+
 class camera {
 public:
     double  aspect_ratio = 1.0;
     int     image_width = 100;
     int     samples_per_pixel = 10;
     int     max_depth = 10;
-    int     threads = std::thread::hardware_concurrency();
 
     double vfov = 90;
     point3 lookfrom = point3(0, 0, -1); // center of camera
@@ -34,58 +38,68 @@ public:
         initialize();
     }
 
-    std::unique_ptr<bitmap> render(const hittable& world) {
+    dimensions get_image_dimensions() const {
+        return { image_width, image_height };
+    }
+
+    void render(const hittable& world, tf::Subflow& subflow, std::shared_ptr<bitmap> out_bmp) {
         using namespace fmt;
 
-        initialize();
-
-        auto out_bmp = std::make_unique<bitmap>(image_width, image_height);
-        tf::Executor executor(threads);
-        tf::Taskflow taskflow;
+        timer time;
 
         spdlog::info("Rendering scene...");
-
-        timer time;
 
         std::atomic<int> completed_scanlines = 0;
         std::atomic<int> last_progress = -1;
 
-        for (int y = 0; y < image_height; y += 1) {
-            taskflow.emplace([&, y, this](tf::Subflow &subflow) {
-                timer row_time;
+        stopped = false;
 
-                for (int x = 0; x < image_width; x += 1) {
-                    subflow.emplace([&, x, y, this]() {
-                        colour pixel_colour(0, 0, 0);
-                        for (int sample = 0; sample < samples_per_pixel; sample += 1) {
-                            ray r = get_ray(x, y);
-                            pixel_colour += ray_colour(r, max_depth, world);
-                        }
+        for (int y = 0; y < image_height && !stopped; y += 1) {
+            timer row_time;
 
-                        pixel& px = out_bmp->pixel_at(x, y);
-                        write_colour(px, pixel_colour, samples_per_pixel);
-                        spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
-                    });
-                }
+            std::vector<std::future<void>> futures;
+            for (int x = 0; x < image_width && !stopped; x += 1) {
+                futures.emplace_back(subflow.async([&, x, y, out_bmp, this]() {
+                    if (stopped) {
+                        return;
+                    }
 
-                subflow.join();
+                    colour pixel_colour(0, 0, 0);
+                    for (int sample = 0; sample < samples_per_pixel; sample += 1) {
+                        ray r = get_ray(x, y);
+                        pixel_colour += ray_colour(r, max_depth, world);
+                    }
 
-                auto val = completed_scanlines++;
-                int progress = (static_cast<double>(val) / image_height) * 100.0;
-                auto diff = row_time.duration<timer::milliseconds>();
+                    pixel& px = out_bmp->pixel_at(x, y);
+                    write_colour(px, pixel_colour, samples_per_pixel);
+                    spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
+                }));
+            }
 
-                if (last_progress.load() != progress && (progress % 10 == 0 || progress >= 99)) {
-                    last_progress.store(progress);
-                    spdlog::debug("Progress {}%, scanline took {:.2f}ms", progress, diff);
-                }
-            });
+            for (auto& future: futures) {
+                future.wait();
+            }
+
+            auto val = completed_scanlines++;
+            int progress = (static_cast<double>(val) / image_height) * 100.0;
+            auto diff = row_time.duration<timer::milliseconds>();
+
+            if (last_progress.load() != progress && (progress % 10 == 0 || progress >= 99)) {
+                last_progress.store(progress);
+                spdlog::debug("Progress {}%, scanline took {:.2f}ms", progress, diff);
+            }
         }
 
-        executor.run(taskflow).wait();
+        if (stopped) {
+            return;
+        }
 
         auto diff = time.duration<timer::milliseconds>();
         spdlog::info("Rendering completed in {}", format(fg(color::aqua), "{:.2f}ms", diff));
-        return out_bmp;
+    }
+
+    void cancel() {
+        stopped = true;
     }
 
 private:
@@ -98,6 +112,8 @@ private:
     vec3    defocus_disk_u;
     vec3    defocus_disk_v;
 
+    bool stopped = true;
+
     void initialize() {
         using namespace fmt;
 
@@ -105,6 +121,7 @@ private:
 
         image_height = static_cast<int>(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;
+
         center = lookfrom;
 
         // Camera

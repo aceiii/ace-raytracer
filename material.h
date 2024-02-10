@@ -2,6 +2,7 @@
 #define __MATERIAL_H__
 
 #include "rtweekend.h"
+#include "colour.h"
 
 class hit_record;
 
@@ -10,6 +11,7 @@ public:
     virtual ~material() = default;
 
     virtual bool scatter(const ray& r_in, const hit_record& rec, colour &attenuation, ray& scattered) const = 0;
+    virtual colour get_colour() const = 0;
 };
 
 class lambertian : public material {
@@ -29,6 +31,10 @@ public:
         return true;
     }
 
+    colour get_colour() const override {
+        return albedo;
+    }
+
 private:
     colour albedo;
 };
@@ -42,6 +48,10 @@ public:
         scattered = ray(rec.p, reflected + fuzz * random_unit_vector());
         attenuation = albedo;
         return dot(scattered.direction(), rec.normal) > 0;
+    }
+
+    colour get_colour() const override {
+        return albedo;
     }
 
 private:
@@ -72,6 +82,10 @@ public:
 
         scattered = ray(rec.p, direction);
         return true;
+    }
+
+    colour get_colour() const override {
+        return colour { 0.5, 0.4, 0.6 };
     }
 
 private:
