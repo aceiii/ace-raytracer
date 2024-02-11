@@ -53,5 +53,18 @@ void sphere::draw() const {
         255,
     };
 
-    DrawSphere(ctr, radius, col);
+    int rings = 10;
+    int slices = 10;
+
+    if (radius > 99) {
+        rings = 20;
+        slices = 20;
+    }
+
+    if (radius > 499) {
+        rings = 40;
+        slices = 40;
+    }
+
+    DrawSphereEx(ctr, radius, rings, slices, col);
 }

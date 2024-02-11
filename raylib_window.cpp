@@ -10,8 +10,6 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
         cam.render(world, subflow, bmp);
     });
 
-    auto future = executor.run(taskflow);
-
     dimensions dims = cam.get_image_dimensions();
     InitWindow(dims.width, dims.height, "Ace Raytracer!");
 
@@ -43,14 +41,13 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
         if (IsKeyPressed(KEY_SPACE)) {
             if (cam.rendering() && !cam.complete()) {
                 cam.cancel();
-                future.wait();
             } else if (cam.complete()) {
                 bmp->clear();
                 cam.cancel();
             } else {
                 bmp->clear();
                 cam.init();
-                future = executor.run(taskflow);
+                executor.run(taskflow);
             }
         }
 
@@ -111,5 +108,4 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
     cam.cancel();
     CloseWindow();
-    future.wait();
 }
