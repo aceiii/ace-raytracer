@@ -33,6 +33,8 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
     cam3d.projection = CAMERA_PERSPECTIVE;
 
+    tf::Future<void> future;
+
     while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_ESCAPE)) {
             break;
@@ -44,10 +46,11 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
             } else if (cam.complete()) {
                 bmp->clear();
                 cam.cancel();
+                future.wait();
             } else {
                 bmp->clear();
                 cam.init();
-                executor.run(taskflow);
+                future = executor.run(taskflow);
             }
         }
 
@@ -107,5 +110,6 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     }
 
     cam.cancel();
+    future.wait();
     CloseWindow();
 }
