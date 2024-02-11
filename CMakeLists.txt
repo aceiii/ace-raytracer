@@ -34,7 +34,5 @@ target_link_libraries(${EXE_NAME} Taskflow)
 target_link_libraries(${EXE_NAME} raylib)
 
 if (APPLE)
-    target_link_libraries(${EXE_NAME} "-framework IOKit")
-    target_link_libraries(${EXE_NAME} "-framework Cocoa")
-    target_link_libraries(${EXE_NAME} "-framework OpenGL")
+    include(cmake/macos.cmake)
 endif()
