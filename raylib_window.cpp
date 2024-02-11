@@ -110,6 +110,8 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     }
 
     cam.cancel();
-    future.wait();
+    if (future.valid()) {
+        future.wait();
+    }
     CloseWindow();
 }
