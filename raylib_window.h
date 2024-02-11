@@ -7,9 +7,12 @@
 #include "bitmap.h"
 
 #include <memory>
+#include <thread>
 
 class raylib_window {
 public:
+    int num_threads = std::thread::hardware_concurrency();
+
     void run(camera& cam, const hittable_list& world, std::shared_ptr<bitmap> bmp);
 };
 

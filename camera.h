@@ -49,17 +49,14 @@ public:
 
         spdlog::info("Rendering scene...");
 
-        std::atomic<int> completed_scanlines = 0;
-        std::atomic<int> last_progress = -1;
-
         stopped = false;
+        done = false;
 
         for (int y = 0; y < image_height && !stopped; y += 1) {
             timer row_time;
 
-            std::vector<std::future<void>> futures;
             for (int x = 0; x < image_width && !stopped; x += 1) {
-                futures.emplace_back(subflow.async([&, x, y, out_bmp, this]() {
+                auto task = subflow.emplace([&, x, y, out_bmp, this]() {
                     if (stopped) {
                         return;
                     }
@@ -73,33 +70,35 @@ public:
                     pixel& px = out_bmp->pixel_at(x, y);
                     write_colour(px, pixel_colour, samples_per_pixel);
                     spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
-                }));
-            }
+                });
 
-            for (auto& future: futures) {
-                future.wait();
-            }
-
-            auto val = completed_scanlines++;
-            int progress = (static_cast<double>(val) / image_height) * 100.0;
-            auto diff = row_time.duration<timer::milliseconds>();
-
-            if (last_progress.load() != progress && (progress % 10 == 0 || progress >= 99)) {
-                last_progress.store(progress);
-                spdlog::debug("Progress {}%, scanline took {:.2f}ms", progress, diff);
+                auto rand_priority = static_cast<tf::TaskPriority>(random_integer(0, static_cast<int>(tf::TaskPriority::MAX) - 1));
+                task.priority(rand_priority);
             }
         }
+
+        subflow.join();
 
         if (stopped) {
             return;
         }
 
+        done = true;
         auto diff = time.duration<timer::milliseconds>();
         spdlog::info("Rendering completed in {}", format(fg(color::aqua), "{:.2f}ms", diff));
     }
 
     void cancel() {
         stopped = true;
+        done = false;
+    }
+
+    bool rendering() const {
+        return !stopped;
+    }
+
+    bool complete() const {
+        return done;
     }
 
 private:
@@ -113,6 +112,7 @@ private:
     vec3    defocus_disk_v;
 
     bool stopped = true;
+    bool done = false;
 
     void initialize() {
         using namespace fmt;

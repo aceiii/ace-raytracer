@@ -75,23 +75,9 @@ int main() {
     auto dims = cam.get_image_dimensions();
     auto bmp = std::make_shared<bitmap>(dims.width, dims.height);
 
-    int num_threads = std::thread::hardware_concurrency();
-    tf::Executor executor(num_threads);
-    tf::Taskflow taskflow;
-
-    taskflow.emplace([&world, &cam, bmp](tf::Subflow subflow) {
-        cam.render(world, subflow, bmp);
-    });
-
-    auto future = executor.run(taskflow);
-    // future.wait();
-
-    // bmp->write_to_file("output.png");
-
     raylib_window rw;
+    rw.num_threads = std::thread::hardware_concurrency();
     rw.run(cam, world, bmp);
-
-    future.wait();
 
     spdlog::info("Done!");
 
