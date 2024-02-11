@@ -43,6 +43,24 @@ public:
             spdlog::info("Write to file complete. Took {}", format(fg(color::aqua), "{:.2f}ms", diff));
         }
     }
+
+    void fill(pixel col) {
+        spdlog::info("Filling bitmap with color: ({}, {}, {}, {})", col.r, col.g, col.b, col.a);
+        for (int y = 0; y < height; y += 1) {
+            for (int x = 0; x < width; x += 1) {
+                data[(width * y) + x] = col;
+            }
+        }
+    }
+
+    void clear() {
+        spdlog::info("Clearing bitmap...");
+        for (int y = 0; y < height; y += 1) {
+            for (int x = 0; x < width; x += 1) {
+                data[(width * y) + x] = pixel { 0, 0, 0, 0 };
+            }
+        }
+    }
 };
 
 
