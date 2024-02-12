@@ -204,10 +204,6 @@ private:
         auto py = -0.5 * random_double();
         return (px * pixel_delta_u) + (py * pixel_delta_v);
     }
-
-    colour lerp(double a, const colour& start, const colour& end) const {
-        return (1.0 - a) * start + a * end;
-    }
 };
 
 #endif//__CAMERA_H__

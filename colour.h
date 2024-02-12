@@ -6,6 +6,10 @@
 
 using colour = vec3;
 
+inline colour lerp(double a, const colour& start, const colour& end) {
+    return (1.0 - a) * start + a * end;
+}
+
 inline double linear_to_gamma(double linear_component) {
     return sqrt(linear_component);
 }
