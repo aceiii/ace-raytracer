@@ -129,8 +129,6 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     cam3d.up = toRaylibVector3(cam.vup);
     cam3d.projection = CAMERA_PERSPECTIVE;
 
-    bool forceSquaredChecked = true;
-
     while (!WindowShouldClose()) {
         if (update(executor, cam, world, bmp)) {
             break;
