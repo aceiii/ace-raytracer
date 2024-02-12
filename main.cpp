@@ -11,10 +11,55 @@
 #include <spdlog/fmt/bundled/core.h>
 #include <stb_image_write.h>
 #include <taskflow/taskflow.hpp>
+#include <argparse/argparse.hpp>
 
-int main() {
-    spdlog::set_level(spdlog::level::debug);
-    // spdlog::set_level(spdlog::level::trace);
+static void set_logging_level(const std::string& level) {
+    if (level == "trace") {
+        spdlog::set_level(spdlog::level::trace);
+    } else if (level == "debug") {
+        spdlog::set_level(spdlog::level::debug);
+    } else if (level == "info") {
+        spdlog::set_level(spdlog::level::info);
+    } else if (level == "warn") {
+        spdlog::set_level(spdlog::level::warn);
+    } else if (level == "err") {
+        spdlog::set_level(spdlog::level::err);
+    } else if (level == "off") {
+        spdlog::set_level(spdlog::level::off);
+    } else {
+        fmt::print("Invalid log: {}", level);
+    }
+}
+
+int main(int argc, char* argv[]) {
+    spdlog::set_level(spdlog::level::info);
+
+    argparse::ArgumentParser program("ace-raytracer", "0.0.1");
+
+    int default_thread_count = std::thread::hardware_concurrency();
+    program.add_argument("-t", "--threads")
+        .help("display the square of a given number")
+        .default_value(default_thread_count)
+        .scan<'i', int>();
+
+    program.add_argument("--log-level")
+        .help("Set the verbosity for logging")
+        .default_value(std::string("info"))
+        .choices("trace", "debug", "info", "warn", "err", "critical", "off");
+
+    try {
+        program.parse_args(argc, argv);
+    } catch(const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        return 1;
+    }
+
+    set_logging_level(program.get("--log-level"));
+
+    spdlog::debug("Args:\n");
+    spdlog::debug("  Num threads: {}\n", program.get<int>("--threads"));
+    spdlog::debug("  Log level: {}\n", program.get("--log-level"));
+
     spdlog::info("Starting raytracer!");
 
     hittable_list world;
@@ -76,7 +121,8 @@ int main() {
     auto bmp = std::make_shared<bitmap>(dims.width, dims.height);
 
     raylib_window rw;
-    rw.num_threads = std::thread::hardware_concurrency();
+    rw.num_threads = program.get<int>("--threads");
+    rw.log_level = program.get("--log-level");
     rw.run(cam, world, bmp);
 
     spdlog::info("Done!");

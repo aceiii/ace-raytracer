@@ -2,7 +2,27 @@
 
 #include <raylib.h>
 
+static void set_logging_level(const std::string& level) {
+    if (level == "trace") {
+        SetTraceLogLevel(LOG_TRACE);
+    } else if (level == "debug") {
+        SetTraceLogLevel(LOG_DEBUG);
+    } else if (level == "info") {
+        SetTraceLogLevel(LOG_INFO);
+    } else if (level == "warn") {
+        SetTraceLogLevel(LOG_WARNING);
+    } else if (level == "err") {
+        SetTraceLogLevel(LOG_ERROR);
+    } else if (level == "off") {
+        SetTraceLogLevel(LOG_NONE);
+    } else {
+        fmt::print("Invalid log: {}", level);
+    }
+}
+
 void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
+    set_logging_level(log_level);
+
     tf::Executor executor(num_threads);
     tf::Taskflow taskflow;
 
