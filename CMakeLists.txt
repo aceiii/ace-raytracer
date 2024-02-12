@@ -27,6 +27,10 @@ add_subdirectory(external/taskflow)
 add_subdirectory(external/raylib)
 add_subdirectory(external/argparse)
 
+# raygui
+add_compile_definitions(RAYGUI_IMPLEMENTATION TRUE)
+add_subdirectory(external/raygui/projects/CMake)
+
 # stb
 target_include_directories(${EXE_NAME} PRIVATE external/stb)
 
@@ -34,6 +38,7 @@ target_link_libraries(${EXE_NAME} spdlog)
 target_link_libraries(${EXE_NAME} Taskflow)
 target_link_libraries(${EXE_NAME} raylib)
 target_link_libraries(${EXE_NAME} argparse)
+target_link_libraries(${EXE_NAME} raygui)
 
 if (APPLE)
     include(cmake/macos.cmake)
