@@ -15,13 +15,13 @@ public:
     vec3() : e{0,0,0} {}
     vec3(double e0, double e1, double e2): e{e0, e1, e2} {}
 
-    double x() const { return e[0]; }
-    double y() const { return e[1]; }
-    double z() const { return e[2]; }
+    inline double x() const { return e[0]; }
+    inline double y() const { return e[1]; }
+    inline double z() const { return e[2]; }
 
-    vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
-    double operator[](int i) const { return e[1]; }
-    double& operator[](int i) { return e[1]; }
+    inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
+    inline double operator[](int i) const { return e[1]; }
+    inline double& operator[](int i) { return e[1]; }
 
     vec3& operator+=(const vec3 &v) {
         e[0] += v.e[0];
@@ -45,11 +45,11 @@ public:
         return sqrt(length_squared());
     }
 
-    double length_squared() const {
+    inline double length_squared() const {
         return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
     }
 
-    bool near_zero() const {
+    inline bool near_zero() const {
         auto s = 1e-8;
         return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
     }

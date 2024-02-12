@@ -20,6 +20,22 @@ static void set_logging_level(const std::string& level) {
     }
 }
 
+inline Vector3 toRaylibVector3(const vec3& vec) {
+    return Vector3 {
+        static_cast<float>(vec.x()),
+        static_cast<float>(vec.y()),
+        static_cast<float>(vec.z())
+    };
+}
+
+inline vec3 fromRaylibVector3(const Vector3& vec) {
+    return vec3 {
+        static_cast<double>(vec.x),
+        static_cast<double>(vec.y),
+        static_cast<double>(vec.z)
+    };
+}
+
 void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
     set_logging_level(log_level);
 
@@ -35,22 +51,9 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
     Camera3D cam3d;
     cam3d.fovy = cam.vfov;
-    cam3d.position = Vector3 {
-        static_cast<float>(cam.lookfrom.x()),
-        static_cast<float>(cam.lookfrom.y()),
-        static_cast<float>(cam.lookfrom.z())
-    };
-    cam3d.target = Vector3 {
-        static_cast<float>(cam.lookat.x()),
-        static_cast<float>(cam.lookat.y()),
-        static_cast<float>(cam.lookat.z())
-    };
-    cam3d.up = Vector3 {
-        static_cast<float>(cam.vup.x()),
-        static_cast<float>(cam.vup.y()),
-        static_cast<float>(cam.vup.z())
-    };
-
+    cam3d.position = toRaylibVector3(cam.lookfrom);
+    cam3d.target = toRaylibVector3(cam.lookat);
+    cam3d.up = toRaylibVector3(cam.vup);
     cam3d.projection = CAMERA_PERSPECTIVE;
 
     tf::Future<void> future;
@@ -76,21 +79,9 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
         if (!cam.rendering()) {
             UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
-            cam.lookat = vec3 {
-                static_cast<double>(cam3d.target.x),
-                static_cast<double>(cam3d.target.y),
-                static_cast<double>(cam3d.target.z)
-            };
-            cam.lookfrom = vec3 {
-                static_cast<double>(cam3d.position.x),
-                static_cast<double>(cam3d.position.y),
-                static_cast<double>(cam3d.position.z)
-            };
-            cam.vup = vec3 {
-                static_cast<double>(cam3d.up.x),
-                static_cast<double>(cam3d.up.y),
-                static_cast<double>(cam3d.up.z)
-            };
+            cam.lookat = fromRaylibVector3(cam3d.target);
+            cam.lookfrom = fromRaylibVector3(cam3d.position);
+            cam.vup = fromRaylibVector3(cam3d.up);
             cam.vfov = cam3d.fovy;
         }
 
