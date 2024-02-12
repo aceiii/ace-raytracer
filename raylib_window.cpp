@@ -48,11 +48,7 @@ inline Color toRaylibColor(const pixel& px) {
     return Color{ px.r, px.g, px.b, px.a };
 }
 
-bool update(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
-    if (IsKeyPressed(KEY_ESCAPE)) {
-        return true;
-    }
-
+inline bool update(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
     if (IsKeyPressed(KEY_SPACE)) {
         if (cam.rendering() && !cam.complete()) {
             cam.cancel();
@@ -62,17 +58,12 @@ bool update(tf::Executor &executor, camera &cam, const hittable_list& world, std
             future.wait();
         } else {
             bmp->clear();
-            cam.init();
             future = executor.run(taskflow);
         }
     }
 
-    if (!cam.rendering()) {
+     if (!cam.rendering()) {
         UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
-        cam.lookat = fromRaylibVector3(cam3d.target);
-        cam.lookfrom = fromRaylibVector3(cam3d.position);
-        cam.vup = fromRaylibVector3(cam3d.up);
-        cam.vfov = cam3d.fovy;
     }
 
     return false;
@@ -89,7 +80,7 @@ inline void draw_rendered_bmp(std::shared_ptr<bitmap> bmp) {
     }
 }
 
-void draw(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
+inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -107,7 +98,7 @@ void draw(tf::Executor &executor, camera &cam, const hittable_list& world, std::
     } else if (cam.complete()) {
         status_text = "Done";
     }
-    GuiStatusBar({ 0, (float)GetScreenHeight() - 32, (float)GetScreenWidth(), 32 }, status_text);
+    GuiStatusBar({ 0, (float)GetScreenHeight() - 20, (float)GetScreenWidth(), 20 }, status_text);
 
     DrawFPS(10, 10);
 
@@ -119,12 +110,18 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
     tf::Executor executor(num_threads);
 
-    auto start_render = taskflow.emplace([&world, &cam, bmp](tf::Subflow subflow) {
+    taskflow.emplace([&world, &cam, bmp](tf::Subflow subflow) {
+        cam.lookat = fromRaylibVector3(cam3d.target);
+        cam.lookfrom = fromRaylibVector3(cam3d.position);
+        cam.vup = fromRaylibVector3(cam3d.up);
+        cam.vfov = cam3d.fovy;
+        cam.init();
         cam.render(world, subflow, bmp);
     });
 
     dimensions dims = cam.get_image_dimensions();
     InitWindow(dims.width, dims.height, "Ace Raytracer!");
+    SetExitKey(KEY_ESCAPE);
 
     cam3d.fovy = cam.vfov;
     cam3d.position = toRaylibVector3(cam.lookfrom);
