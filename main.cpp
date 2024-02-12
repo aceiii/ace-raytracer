@@ -40,17 +40,20 @@ int main(int argc, char* argv[]) {
     program.add_argument("-t", "--threads")
         .help("display the square of a given number")
         .default_value(default_thread_count)
+        .nargs(1)
         .scan<'i', int>();
 
     program.add_argument("--log-level")
         .help("Set the verbosity for logging")
         .default_value(std::string("info"))
-        .choices("trace", "debug", "info", "warn", "err", "critical", "off");
+        .choices("trace", "debug", "info", "warn", "err", "critical", "off")
+        .nargs(1);
 
     try {
         program.parse_args(argc, argv);
     } catch(const std::exception& err) {
         std::cerr << err.what() << std::endl;
+        std::cerr << program;
         return 1;
     }
 
