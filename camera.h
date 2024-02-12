@@ -155,13 +155,14 @@ private:
 
         spdlog::info("  image dimensions: {}", format(fg(color::aqua), "{} x {}", image_width, image_height));
         spdlog::info("  samples per pixel: {}", styled(samples_per_pixel, fg(color::aqua)));
+        spdlog::info("  max depth: {}", styled(max_depth, fg(color::aqua)));
     }
 
     colour ray_colour(const ray& r, int depth, const hittable& world) const {
         hit_record rec;
 
         // no more bounces, no more light
-        if (depth <= 0) {
+        if (depth < 0) {
             return colour(0, 0, 0);
         }
 

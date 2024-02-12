@@ -8,6 +8,9 @@ namespace {
     tf::Future<void> future;
 
     Camera3D cam3d;
+
+    float samples;
+    float max_depth;
 }
 
 static void set_logging_level(const std::string& level) {
@@ -63,7 +66,7 @@ inline bool update(tf::Executor &executor, camera &cam, const hittable_list& wor
     }
 
      if (!cam.rendering()) {
-        UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
+        // UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
     }
 
     return false;
@@ -81,6 +84,18 @@ inline void draw_rendered_bmp(std::shared_ptr<bitmap> bmp) {
 }
 
 inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
+    auto restart_render = [&, bmp]() {
+        bmp->clear();
+        cam.cancel();
+        if (future.valid()) {
+            future.wait();
+        }
+        future = executor.run(taskflow);
+    };
+
+    float screen_width = GetScreenWidth();
+    float screen_height = GetScreenHeight();
+
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -93,12 +108,57 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
     }
 
     auto status_text = "Idle";
+    auto button_text = "Render";
     if (cam.rendering() && !cam.complete()) {
         status_text = "Rendering...";
+        button_text = "Cancel Rendering";
     } else if (cam.complete()) {
         status_text = "Done";
     }
-    GuiStatusBar({ 0, (float)GetScreenHeight() - 20, (float)GetScreenWidth(), 20 }, status_text);
+
+    int margin = 10;
+    int status_bar_height = 20;
+    int panel_width = 280;
+    int panel_x = screen_width - panel_width - margin;
+    int panel_y = margin;
+    int panel_height = screen_height - margin -margin - status_bar_height;
+    int padding = 16;
+
+    DrawRectangle(panel_x, panel_y, panel_width, panel_height , Fade(RAYWHITE, 0.8));
+    BeginScissorMode(panel_x, panel_y, panel_width, panel_height);
+
+    int item_x = panel_x + padding;
+    int item_y = panel_y + padding;
+    int max_item_width = panel_width - padding - padding;
+
+    if (cam.rendering() && !cam.complete()) {
+        GuiLock();
+        GuiSetState(STATE_DISABLED);
+    }
+
+    DrawText(TextFormat("Samples: %d", (int)samples), item_x, item_y, 10, BLACK);
+    item_y += 10 + 8;
+    GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "255", (float*)&samples, 1, 255);
+    item_y += 20 + 16;
+    DrawText(TextFormat("Max Depth: %d", (int)max_depth), item_x, item_y, 10, BLACK);
+    item_y += 10 + 8;
+    GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "80", (float*)&max_depth, 1, 80);
+
+    GuiSetState(STATE_NORMAL);
+    GuiUnlock();
+
+    if (GuiButton({ (float)panel_x + padding, (float)panel_height - 32, (float)panel_width - 32, 32 }, button_text)) {
+        spdlog::debug("Button clicked!");
+
+        if (cam.rendering() && !cam.complete()) {
+            cam.cancel();
+        } else {
+            restart_render();
+        }
+    }
+    EndScissorMode();
+
+    GuiStatusBar({ 0, screen_height - status_bar_height, screen_width, (float)status_bar_height }, status_text);
 
     DrawFPS(10, 10);
 
@@ -115,6 +175,8 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
         cam.lookfrom = fromRaylibVector3(cam3d.position);
         cam.vup = fromRaylibVector3(cam3d.up);
         cam.vfov = cam3d.fovy;
+        cam.samples_per_pixel = (int)samples;
+        cam.max_depth = (int)max_depth;
         cam.init();
         cam.render(world, subflow, bmp);
     });
@@ -128,6 +190,9 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     cam3d.target = toRaylibVector3(cam.lookat);
     cam3d.up = toRaylibVector3(cam.vup);
     cam3d.projection = CAMERA_PERSPECTIVE;
+
+    samples = cam.samples_per_pixel;
+    max_depth = cam.max_depth;
 
     while (!WindowShouldClose()) {
         if (update(executor, cam, world, bmp)) {
