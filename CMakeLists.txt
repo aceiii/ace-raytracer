@@ -25,6 +25,7 @@ add_executable(${EXE_NAME} ${SOURCE_FILES})
 add_subdirectory(external/spdlog)
 add_subdirectory(external/taskflow)
 add_subdirectory(external/raylib)
+add_subdirectory(external/argparse)
 
 # stb
 target_include_directories(${EXE_NAME} PRIVATE external/stb)
@@ -32,6 +33,7 @@ target_include_directories(${EXE_NAME} PRIVATE external/stb)
 target_link_libraries(${EXE_NAME} spdlog)
 target_link_libraries(${EXE_NAME} Taskflow)
 target_link_libraries(${EXE_NAME} raylib)
+target_link_libraries(${EXE_NAME} argparse)
 
 if (APPLE)
     include(cmake/macos.cmake)
