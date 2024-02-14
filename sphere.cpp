@@ -4,11 +4,19 @@
 #include <raylib.h>
 #include <spdlog/fmt/bundled/core.h>
 
-sphere::sphere(point3 _center, double _radius, shared_ptr<material> _material):
-    center{_center}, radius{_radius}, mat{_material} {}
+sphere::sphere(point3 _center, double _radius, shared_ptr<material> _material)
+    :center1(_center), radius(_radius), mat(_material)
+{}
+
+sphere::sphere(point3 _center1, point3 _center2, double _radius, shared_ptr<material> _material)
+    : center1(_center1), radius(_radius), mat(_material), is_moving(true)
+{
+    center_vec = _center2 - _center1;
+}
 
 bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
-    vec3 oc = r.origin() - center;
+    point3 center0 = is_moving ? sphere::center(r.time()) : center1;
+    vec3 oc = r.origin() - center0;
     auto a = r.direction().length_squared();
     auto half_b = dot(oc, r.direction());
     auto c = oc.length_squared() - radius * radius;
@@ -31,7 +39,7 @@ bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
     rec.t = root;
     rec.p = r.at(rec.t);
-    vec3 outward_normal = (rec.p - center) / radius;
+    vec3 outward_normal = (rec.p - center0) / radius;
     rec.set_face_normal(r, outward_normal);
     rec.mat = mat;
 
@@ -40,9 +48,9 @@ bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
 void sphere::draw() const {
     Vector3 ctr {
-        static_cast<float>(center.x()),
-        static_cast<float>(center.y()),
-        static_cast<float>(center. z())
+        static_cast<float>(center1.x()),
+        static_cast<float>(center1.y()),
+        static_cast<float>(center1. z())
     };
 
     auto c = mat->get_colour();
