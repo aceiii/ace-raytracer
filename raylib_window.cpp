@@ -56,17 +56,19 @@ inline Color toRaylibColor(const pixel& px) {
 
 inline bool update(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
     if (IsKeyPressed(KEY_SPACE)) {
-        enable_move = false;
-        if (cam.rendering() && !cam.complete()) {
-            cam.cancel();
-        } else if (cam.complete()) {
-            bmp->clear();
-            cam.cancel();
-            future.wait();
-        } else {
-            bmp->clear();
-            future = executor.run(taskflow);
-        }
+        show_panel = !show_panel;
+        enable_move = !show_panel && !cam.rendering();
+
+        // if (cam.rendering() && !cam.complete()) {
+        //     cam.cancel();
+        // } else if (cam.complete()) {
+        //     bmp->clear();
+        //     cam.cancel();
+        //     future.wait();
+        // } else {
+        //     bmp->clear();
+        //     future = executor.run(taskflow);
+        // }
     }
 
     if (!cam.rendering() && enable_move) {
@@ -168,7 +170,7 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
     if (GuiButton({ (float)panel_x + panel_width - 20 - 4, (float)panel_y + 4, 20, 20 }, show_panel ? "X" : "O")) {
         spdlog::trace("Panel Close Clicked");
         show_panel = !show_panel;
-        enable_move = !show_panel;
+        enable_move = !show_panel && !cam.rendering();
     }
 
     GuiStatusBar({ 0, screen_height - status_bar_height, screen_width, (float)status_bar_height }, status_text);
@@ -206,6 +208,8 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
 
     samples = cam.samples_per_pixel;
     max_depth = cam.max_depth;
+
+    SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         if (update(executor, cam, world, bmp)) {
