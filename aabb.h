@@ -31,16 +31,44 @@ public:
         return x;
     }
 
+    // bool hit(const ray& r, interval ray_t) const {
+    //     for (int a = 0; a < 3; a += 1) {
+    //         auto t0 = fmin((axis(a).min - r.origin()[a]) / r.direction()[a],
+    //                        (axis(a).max - r.origin()[a]) / r.direction()[a]);
+
+    //         auto t1 = fmax((axis(a).min - r.origin()[a]) / r.direction()[a],
+    //                        (axis(a).max - r.origin()[a]) / r.direction()[a]);
+
+    //         ray_t.min = fmax(t0, ray_t.min);
+    //         ray_t.max = fmin(t1, ray_t.max);
+
+    //         if (ray_t.max <= ray_t.min) {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+
+    // optimized version by Andrew Kensler from Pixar
     bool hit(const ray& r, interval ray_t) const {
         for (int a = 0; a < 3; a += 1) {
-            auto t0 = fmin((axis(a).min - r.origin()[a]) / r.direction()[a],
-                           (axis(a).max - r.origin()[a]) / r.direction()[a]);
+            auto invD = 1 / r.direction()[a];
+            auto orig = r.origin()[a];
 
-            auto t1 = fmax((axis(a).min - r.origin()[a]) / r.direction()[a],
-                           (axis(a).max - r.origin()[a]) / r.direction()[a]);
+            auto t0 = (axis(a).min - orig) * invD;
+            auto t1 = (axis(a).max - orig) * invD;
 
-            ray_t.min = fmax(t0, ray_t.min);
-            ray_t.max = fmin(t1, ray_t.max);
+            if (invD < 0) {
+                std::swap(t0, t1);
+            }
+
+            if (t0 > ray_t.min) {
+                ray_t.min = t0;
+            }
+
+            if (t1 < ray_t.max) {
+                ray_t.max = t1;
+            }
 
             if (ray_t.max <= ray_t.min) {
                 return false;
