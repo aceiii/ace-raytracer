@@ -17,7 +17,12 @@ public:
     void clear();
     void add(std::shared_ptr<hittable> object);
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override;
+    inline aabb bounding_box() const override { return bbox; }
+
     void draw() const override;
+
+private:
+    aabb bbox;
 };
 
 #endif//__HITTABLE_LIST_H__

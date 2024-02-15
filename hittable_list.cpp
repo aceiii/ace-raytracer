@@ -19,6 +19,7 @@ void hittable_list::clear() {
 
 void hittable_list::add(shared_ptr<hittable> object) {
     objects.push_back(object);
+    bbox = aabb(bbox, object->bounding_box());
 }
 
 bool hittable_list::hit(const ray& r, interval ray_t, hit_record& rec) const {
