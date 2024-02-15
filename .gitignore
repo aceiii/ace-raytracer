@@ -5,3 +5,4 @@ dist/
 main
 output.*
 .vscode
+.cache
