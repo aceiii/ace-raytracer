@@ -29,6 +29,15 @@ public:
         return x;
     }
 
+    inline double size() const {
+        return max - min;
+    }
+
+    inline interval expand(double delta) const {
+        auto padding = delta / 2;
+        return interval(min - padding, max + padding);
+    }
+
     static const interval empty, universe;
 };
 
