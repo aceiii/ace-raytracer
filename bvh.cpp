@@ -10,7 +10,7 @@ void bvh_node::draw() const {
     Vector3 pos {
         static_cast<float>(bbox.x.min),
         static_cast<float>(bbox.y.min),
-        static_cast<float>(bbox.z.max)
+        static_cast<float>(bbox.z.min),
     };
 
     auto width = static_cast<float>(bbox.x.size());

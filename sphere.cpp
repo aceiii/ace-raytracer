@@ -87,4 +87,16 @@ void sphere::draw() const {
     }
 
     DrawSphereEx(ctr, radius, rings, slices, col);
+
+    Vector3 pos {
+        static_cast<float>(bbox.x.min),
+        static_cast<float>(bbox.y.min),
+        static_cast<float>(bbox.z.min),
+    };
+
+    auto width = static_cast<float>(bbox.x.size());
+    auto height = static_cast<float>(bbox.y.size());
+    auto length = static_cast<float>(bbox.z.size());
+
+    DrawCubeWires(pos, width, height, length, MAROON);
 }

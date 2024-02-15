@@ -82,6 +82,30 @@ public:
         }
         return true;
     }
+
+    inline vec3 min() const {
+        return {
+            x.min,
+            y.min,
+            z.min,
+        };
+    }
+
+    inline vec3 max() const {
+        return {
+            x.max,
+            y.max,
+            z.max,
+        };
+    }
+
+    inline vec3 size() const {
+        return {
+            x.size(),
+            y.size(),
+            z.size(),
+        };
+    }
 };
 
 #endif//__AABB_H__

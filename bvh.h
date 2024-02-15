@@ -6,12 +6,15 @@
 #include "hittable_list.h"
 
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 class bvh_node : public hittable {
 public:
     bvh_node(const hittable_list& list) : bvh_node(list.objects, 0, list.objects.size()) {}
 
     bvh_node(const std::vector<shared_ptr<hittable>>& src_objects, size_t start, size_t end) {
+        spdlog::trace("Creating bvh node for hittalbes: [{}, {}]", start, end);
+
         auto objects = src_objects; // create modifiable array of source objects
 
         int axis = random_integer(0, 2);
