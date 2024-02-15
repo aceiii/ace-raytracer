@@ -11,6 +11,9 @@ namespace {
 
     float samples;
     float max_depth;
+
+    bool show_panel = true;
+    bool enable_move = false;
 }
 
 static void set_logging_level(const std::string& level) {
@@ -53,6 +56,7 @@ inline Color toRaylibColor(const pixel& px) {
 
 inline bool update(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
     if (IsKeyPressed(KEY_SPACE)) {
+        enable_move = false;
         if (cam.rendering() && !cam.complete()) {
             cam.cancel();
         } else if (cam.complete()) {
@@ -65,8 +69,8 @@ inline bool update(tf::Executor &executor, camera &cam, const hittable_list& wor
         }
     }
 
-     if (!cam.rendering()) {
-        // UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
+    if (!cam.rendering() && enable_move) {
+        UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
     }
 
     return false;
@@ -124,39 +128,48 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
     int panel_height = screen_height - margin -margin - status_bar_height;
     int padding = 16;
 
-    DrawRectangle(panel_x, panel_y, panel_width, panel_height , Fade(RAYWHITE, 0.8));
-    BeginScissorMode(panel_x, panel_y, panel_width, panel_height);
+    if (show_panel) {
+        DrawRectangle(panel_x, panel_y, panel_width, panel_height , Fade(RAYWHITE, 0.8));
+        BeginScissorMode(panel_x, panel_y, panel_width, panel_height);
 
-    int item_x = panel_x + padding;
-    int item_y = panel_y + padding;
-    int max_item_width = panel_width - padding - padding;
-
-    if (cam.rendering() && !cam.complete()) {
-        GuiLock();
-        GuiSetState(STATE_DISABLED);
-    }
-
-    DrawText(TextFormat("Samples: %d", (int)samples), item_x, item_y, 10, BLACK);
-    item_y += 10 + 8;
-    GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "255", (float*)&samples, 1, 255);
-    item_y += 20 + 16;
-    DrawText(TextFormat("Max Depth: %d", (int)max_depth), item_x, item_y, 10, BLACK);
-    item_y += 10 + 8;
-    GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "80", (float*)&max_depth, 1, 80);
-
-    GuiSetState(STATE_NORMAL);
-    GuiUnlock();
-
-    if (GuiButton({ (float)panel_x + padding, (float)panel_height - 32, (float)panel_width - 32, 32 }, button_text)) {
-        spdlog::debug("Button clicked!");
+        int item_x = panel_x + padding;
+        int item_y = panel_y + padding;
+        int max_item_width = panel_width - padding - padding;
 
         if (cam.rendering() && !cam.complete()) {
-            cam.cancel();
-        } else {
-            restart_render();
+            GuiLock();
+            GuiSetState(STATE_DISABLED);
         }
+
+        DrawText(TextFormat("Samples: %d", (int)samples), item_x, item_y, 10, BLACK);
+        item_y += 10 + 8;
+        GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "255", (float*)&samples, 1, 255);
+        item_y += 20 + 16;
+        DrawText(TextFormat("Max Depth: %d", (int)max_depth), item_x, item_y, 10, BLACK);
+        item_y += 10 + 8;
+        GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "80", (float*)&max_depth, 1, 80);
+
+        GuiSetState(STATE_NORMAL);
+        GuiUnlock();
+
+        if (GuiButton({ (float)panel_x + padding, (float)panel_height - 32, (float)panel_width - 32, 32 }, button_text)) {
+            spdlog::trace("Render clicked!");
+
+            if (cam.rendering() && !cam.complete()) {
+                cam.cancel();
+            } else {
+                restart_render();
+            }
+        }
+
+        EndScissorMode();
     }
-    EndScissorMode();
+
+    if (GuiButton({ (float)panel_x + panel_width - 20 - 4, (float)panel_y + 4, 20, 20 }, show_panel ? "X" : "O")) {
+        spdlog::trace("Panel Close Clicked");
+        show_panel = !show_panel;
+        enable_move = !show_panel;
+    }
 
     GuiStatusBar({ 0, screen_height - status_bar_height, screen_width, (float)status_bar_height }, status_text);
 

@@ -10,6 +10,7 @@ set(SOURCE_FILES
     colour.cpp
     sphere.cpp
     hittable_list.cpp
+    bvh.cpp
     raylib_window.cpp
     # stb_impl.cpp
 )
