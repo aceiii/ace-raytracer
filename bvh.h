@@ -57,6 +57,11 @@ public:
         return bbox;
     }
 
+    void draw() const override {
+        left->draw();
+        right->draw();
+    }
+
 private:
     shared_ptr<hittable> left;
     shared_ptr<hittable> right;

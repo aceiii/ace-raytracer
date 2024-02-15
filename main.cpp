@@ -3,6 +3,7 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "bvh.h"
 #include "raylib_window.h"
 
 #include <iostream>
@@ -107,6 +108,8 @@ int main(int argc, char* argv[]) {
 
     auto material3 = make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+
+    world = hittable_list(make_shared<bvh_node>(world));
 
     camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
