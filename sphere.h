@@ -28,6 +28,8 @@ private:
     inline point3 center(double time) const {
         return center1 + time * center_vec;
     }
+
+    static void get_sphere_uv(const point3& p, double& u, double& v);
 };
 
 #endif// __SPHERE_H__
