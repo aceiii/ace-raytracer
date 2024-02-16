@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     spdlog::info("Starting raytracer!");
 
-    auto scene = get_scene(3);
+    auto scene = get_scene(1);
     auto world = hittable_list(make_shared<bvh_node>(scene.world));
 
     camera cam;
