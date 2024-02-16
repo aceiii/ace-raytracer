@@ -23,6 +23,12 @@ set(ENKITS_BUILD_C_INTERFACE OFF)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
+add_compile_definitions(SUPPORT_FILEFORMAT_JPG ON)
+add_compile_definitions(SUPPORT_FILEFORMAT_PNG ON)
+add_compile_definitions(SUPPORT_FILEFORMAT_TGA ON)
+add_compile_definitions(SUPPORT_FILEFORMAT_BMP ON)
+add_compile_definitions(SUPPORT_FILEFORMAT_HDR ON)
+
 add_subdirectory(external/spdlog)
 add_subdirectory(external/taskflow)
 add_subdirectory(external/raylib)
