@@ -121,6 +121,35 @@ scene_info two_spheres() {
     return scene;
 }
 
+scene_info earth() {
+    hittable_list world = world;
+
+    auto earth_texture = make_shared<image_texture>("earthmap.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
+
+    world.add(globe);
+
+    scene_info scene;
+    scene.world = world;
+    scene.vfov = 20;
+    scene.lookfrom = point3(0, 0, 12);
+    scene.lookat = point3(0, 0, 0);
+    scene.vup = vec3(0, 1, 0);
+    scene.defocus_angle = 0;
+    scene.focus_dist = 10.0;
+
+    return scene;
+}
+
+scene_info get_scene(int n) {
+    switch (n) {
+        case 1: return random_spheres();
+        case 2: return two_spheres();
+        case 3: return earth();
+    }
+}
+
 int main(int argc, char* argv[]) {
     spdlog::set_level(spdlog::level::info);
 
@@ -149,13 +178,13 @@ int main(int argc, char* argv[]) {
 
     set_logging_level(program.get("--log-level"));
 
-    spdlog::debug("Args:\n");
-    spdlog::debug("  Num threads: {}\n", program.get<int>("--threads"));
-    spdlog::debug("  Log level: {}\n", program.get("--log-level"));
+    spdlog::debug("Args:");
+    spdlog::debug("  Num threads: {}", program.get<int>("--threads"));
+    spdlog::debug("  Log level: {}", program.get("--log-level"));
 
     spdlog::info("Starting raytracer!");
 
-    auto scene = two_spheres();
+    auto scene = get_scene(3);
     auto world = hittable_list(make_shared<bvh_node>(scene.world));
 
     camera cam;
