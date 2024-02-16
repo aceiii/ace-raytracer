@@ -3,6 +3,7 @@
 
 #include "rtweekend.h"
 #include "colour.h"
+#include "texture.h"
 
 class hit_record;
 
@@ -11,12 +12,15 @@ public:
     virtual ~material() = default;
 
     virtual bool scatter(const ray& r_in, const hit_record& rec, colour &attenuation, ray& scattered) const = 0;
+
+    // for drawing to viewport
     virtual colour get_colour() const = 0;
 };
 
 class lambertian : public material {
 public:
-    lambertian(const colour& a): albedo(a) {}
+    lambertian(const colour& a) : albedo(make_shared<solid_colour>(a)), col(a) {}
+    lambertian(shared_ptr<texture> a) : albedo(a), col(albedo->value(0, 0, point3(0, 0, 0))) {}
 
     bool scatter(const ray& r_in, const hit_record& rec, colour &attenuation, ray& scattered) const override {
         auto scatter_direction = rec.normal + random_unit_vector();
@@ -27,16 +31,17 @@ public:
         }
 
         scattered = ray(rec.p, scatter_direction, r_in.time());
-        attenuation = albedo;
+        attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
     colour get_colour() const override {
-        return albedo;
+        return col;
     }
 
 private:
-    colour albedo;
+    shared_ptr<texture> albedo;
+    colour col;
 };
 
 class metal : public material {
