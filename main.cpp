@@ -4,6 +4,7 @@
 #include "material.h"
 #include "sphere.h"
 #include "bvh.h"
+#include "texture.h"
 #include "raylib_window.h"
 
 #include <iostream>
@@ -13,6 +14,16 @@
 #include <stb_image_write.h>
 #include <taskflow/taskflow.hpp>
 #include <argparse/argparse.hpp>
+
+struct scene_info {
+    hittable_list world;
+    double vfov;
+    point3 lookfrom;
+    point3 lookat;
+    vec3 vup;
+    double defocus_angle;
+    double focus_dist;
+};
 
 static void set_logging_level(const std::string& level) {
     if (level == "trace") {
@@ -32,43 +43,11 @@ static void set_logging_level(const std::string& level) {
     }
 }
 
-int main(int argc, char* argv[]) {
-    spdlog::set_level(spdlog::level::info);
-
-    argparse::ArgumentParser program("ace-raytracer", "0.0.1");
-
-    int default_thread_count = std::thread::hardware_concurrency();
-    program.add_argument("-t", "--threads")
-        .help("display the square of a given number")
-        .default_value(default_thread_count)
-        .nargs(1)
-        .scan<'i', int>();
-
-    program.add_argument("--log-level")
-        .help("Set the verbosity for logging")
-        .default_value(std::string("info"))
-        .choices("trace", "debug", "info", "warn", "err", "critical", "off")
-        .nargs(1);
-
-    try {
-        program.parse_args(argc, argv);
-    } catch(const std::exception& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        return 1;
-    }
-
-    set_logging_level(program.get("--log-level"));
-
-    spdlog::debug("Args:\n");
-    spdlog::debug("  Num threads: {}\n", program.get<int>("--threads"));
-    spdlog::debug("  Log level: {}\n", program.get("--log-level"));
-
-    spdlog::info("Starting raytracer!");
-
+scene_info random_spheres() {
     hittable_list world;
 
-    auto ground_material = make_shared<lambertian>(colour(0.5, 0.5, 0.5));
+    auto checker = make_shared<checker_texture>(0.32, colour(0.2, 0.3, 0.1), colour(0.9, 0.9, 0.9));
+    auto ground_material = make_shared<lambertian>(checker);
     world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {
@@ -109,19 +88,87 @@ int main(int argc, char* argv[]) {
     auto material3 = make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
-    world = hittable_list(make_shared<bvh_node>(world));
+    scene_info scene;
+    scene.world = world;
+    scene.vfov = 20;
+    scene.lookfrom = point3(13, 2, 3);
+    scene.lookat = point3(0, 0, 0);
+    scene.vup = vec3(0, 1, 0);
+    scene.defocus_angle = 0.6;
+    scene.focus_dist = 10.0;
+
+    return scene;
+}
+
+scene_info two_spheres() {
+    hittable_list world;
+
+    auto checker = make_shared<checker_texture>(0.8, colour(0.2, 0.3, 0.1), colour(0.9, 0.9, 0.9));
+    auto checker_material = make_shared<lambertian>(checker);
+
+    world.add(make_shared<sphere>(point3(0, -10, 0), 10, checker_material));
+    world.add(make_shared<sphere>(point3(0, 10, 0), 10, checker_material));
+
+    scene_info scene;
+    scene.world = world;
+    scene.vfov = 20;
+    scene.lookfrom = point3(13, 2, 3);
+    scene.lookat = point3(0, 0, 0);
+    scene.vup = vec3(0, 1, 0);
+    scene.defocus_angle = 0;
+    scene.focus_dist = 10.0;
+
+    return scene;
+}
+
+int main(int argc, char* argv[]) {
+    spdlog::set_level(spdlog::level::info);
+
+    argparse::ArgumentParser program("ace-raytracer", "0.0.1");
+
+    int default_thread_count = std::thread::hardware_concurrency();
+    program.add_argument("-t", "--threads")
+        .help("display the square of a given number")
+        .default_value(default_thread_count)
+        .nargs(1)
+        .scan<'i', int>();
+
+    program.add_argument("--log-level")
+        .help("Set the verbosity for logging")
+        .default_value(std::string("info"))
+        .choices("trace", "debug", "info", "warn", "err", "critical", "off")
+        .nargs(1);
+
+    try {
+        program.parse_args(argc, argv);
+    } catch(const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        return 1;
+    }
+
+    set_logging_level(program.get("--log-level"));
+
+    spdlog::debug("Args:\n");
+    spdlog::debug("  Num threads: {}\n", program.get<int>("--threads"));
+    spdlog::debug("  Log level: {}\n", program.get("--log-level"));
+
+    spdlog::info("Starting raytracer!");
+
+    auto scene = two_spheres();
+    auto world = hittable_list(make_shared<bvh_node>(scene.world));
 
     camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 1024;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
-    cam.vfov = 20;
-    cam.lookfrom = point3(13, 2, 3);
-    cam.lookat = point3(0, 0, 0);
-    cam.vup = vec3(0, 1, 0);
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
+    cam.vfov = scene.vfov;
+    cam.lookfrom = scene.lookfrom;
+    cam.lookat = scene.lookat;
+    cam.vup = scene.vup;
+    cam.defocus_angle = scene.defocus_angle;
+    cam.focus_dist = scene.focus_dist;
     cam.init();
 
     auto dims = cam.get_image_dimensions();
