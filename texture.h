@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 #include "colour.h"
 #include "vec3.h"
+#include "rtw_stb_image.h"
 
 class texture {
 public:
@@ -45,6 +46,32 @@ private:
     double inv_scale;
     shared_ptr<texture> even;
     shared_ptr<texture> odd;
+};
+
+class image_texture : public texture {
+public:
+    image_texture(const char* filename) : image(filename) {}
+
+    colour value(double u, double v, const point3& p) const override {
+        // if no texture data return solid cyan for debugging purposes
+        if (image.height() <= 0) {
+            return colour(0, 1, 1);
+        }
+
+        // clamp input to [0,1] x [1,0]
+        u = interval(0, 1).clamp(u);
+        v = 1.0 - interval(0, 1).clamp(v); // flip v to image coordinates
+
+        auto i = static_cast<int>(u * image.width());
+        auto j = static_cast<int>(v * image.height());
+        auto pixel = image.pixel_data(i, j);
+
+        auto colour_scale = 1.0 / 255.0;
+        return colour(colour_scale * pixel[0], colour_scale * pixel[1], colour_scale * pixel[2]);
+    }
+
+private:
+    rtw_image image;
 };
 
 #endif//__TEXTURE_H__

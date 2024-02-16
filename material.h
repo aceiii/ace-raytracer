@@ -20,7 +20,15 @@ public:
 class lambertian : public material {
 public:
     lambertian(const colour& a) : albedo(make_shared<solid_colour>(a)), col(a) {}
-    lambertian(shared_ptr<texture> a) : albedo(a), col(albedo->value(0, 0, point3(0, 0, 0))) {}
+    lambertian(shared_ptr<texture> a) : albedo(a) {
+        // sample colours from texture to generate a single averaged colour
+        int samples = 1000;
+        point3 p(0, 0, 0);
+        for (int i = 0; i < samples; i += 1) {
+            col = col + albedo->value(random_double(0, 1), random_double(0, 1), p);
+        }
+        col = col / samples;
+    }
 
     bool scatter(const ray& r_in, const hit_record& rec, colour &attenuation, ray& scattered) const override {
         auto scatter_direction = rec.normal + random_unit_vector();
