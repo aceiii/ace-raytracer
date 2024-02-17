@@ -122,7 +122,7 @@ scene_info two_spheres() {
 }
 
 scene_info earth() {
-    hittable_list world = world;
+    hittable_list world;
 
     auto earth_texture = make_shared<image_texture>("earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
