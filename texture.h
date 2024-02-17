@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 #include "colour.h"
 #include "vec3.h"
+#include "perlin.h"
 #include "rtw_stb_image.h"
 
 class texture {
@@ -73,5 +74,18 @@ public:
 private:
     rtw_image image;
 };
+
+class noise_texture : public texture {
+public:
+    noise_texture() {}
+
+    colour value(double u, double v, const point3& p) const override {
+        return colour(1, 1, 1) * noise.noise(p);
+    }
+
+private:
+    perlin noise;
+};
+
 
 #endif//__TEXTURE_H__
