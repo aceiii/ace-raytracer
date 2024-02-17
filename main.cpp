@@ -17,12 +17,12 @@
 
 struct scene_info {
     hittable_list world;
-    double vfov;
-    point3 lookfrom;
-    point3 lookat;
-    vec3 vup;
-    double defocus_angle;
-    double focus_dist;
+    double vfov = 20;
+    point3 lookfrom = point3(1, 0, 1);
+    point3 lookat = point3(0, 0, 0);
+    vec3 vup = vec3(0, 1, 0);
+    double defocus_angle = 0;
+    double focus_dist = 10;
 };
 
 static void set_logging_level(const std::string& level) {
@@ -143,19 +143,18 @@ scene_info earth() {
 }
 
 scene_info two_perlin_spheres() {
-    hittable_list world;
+    scene_info scene;
 
     auto pertext = make_shared<noise_texture>();
-    world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
-    world.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+    scene.world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+    scene.world.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
 
-    scene_info scene;
-    scene.world = world;
     scene.vfov = 20;
-    scene.lookfrom = point3(0, 0, 12);
+    scene.lookfrom = point3(13, 2, 3);
     scene.lookat = point3(0, 0, 0);
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0;
+    scene.focus_dist = 10.0;
 
     return scene;
 }
