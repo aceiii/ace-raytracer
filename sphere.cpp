@@ -9,6 +9,9 @@ sphere::sphere(point3 _center, double _radius, shared_ptr<material> _material)
 {
     auto rvec = vec3(radius, radius, radius);
     bbox = aabb(center1 - rvec, center1 + rvec);
+
+    spdlog::trace("Creating sphere at ({:0.2f},{:0.2f},{:0.2f}) with radius {:0.2f}", center1.x(), center1.y(), center1.z(), radius);
+    spdlog::trace("Creating bounding box from ({:0.2f},{:0.2f},{:0.2f}) to ({:0.2f},{:0.2f},{:0.2f})", bbox.x.min, bbox.y.min, bbox.z.min, bbox.x.max, bbox.y.max, bbox.z.max);
 }
 
 sphere::sphere(point3 _center1, point3 _center2, double _radius, shared_ptr<material> _material)
@@ -89,17 +92,15 @@ void sphere::draw() const {
 
     DrawSphereEx(ctr, radius, rings, slices, col);
 
-    Vector3 pos {
-        static_cast<float>(bbox.x.min),
-        static_cast<float>(bbox.y.min),
-        static_cast<float>(bbox.z.min),
+    Vector3 size {
+        static_cast<float>(bbox.x.size()),
+        static_cast<float>(bbox.y.size()),
+        static_cast<float>(bbox.z.size()),
     };
 
-    auto width = static_cast<float>(bbox.x.size());
-    auto height = static_cast<float>(bbox.y.size());
-    auto length = static_cast<float>(bbox.z.size());
+    spdlog::trace("Drawing bbox at ({:0.2f},{:0.2f},{:0.2f}) with sides of size ({:0.2f},{:0.2f},{:0.2f})", ctr.x, ctr.y, ctr.z, size.x, size.y, size.z);
 
-    DrawCubeWires(pos, width, height, length, MAROON);
+    DrawCubeWiresV(ctr, size, MAROON);
 }
 
 void sphere::get_sphere_uv(const point3& p, double& u, double& v) {
