@@ -191,6 +191,27 @@ scene_info quads() {
     return scene;
 }
 
+scene_info simple_light() {
+    scene_info scene;
+
+    auto pertext = make_shared<noise_texture>(4);
+    scene.world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+    scene.world.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+
+    auto difflight = make_shared<diffuse_light>(colour(4, 4, 4));
+    scene.world.add(make_shared<sphere>(point3(0, 7, 0), 2, difflight));
+    scene.world.add(make_shared<quad>(point3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), difflight));
+
+    scene.vfov = 20;
+    scene.lookfrom = point3(26, 3, 6);
+    scene.lookat = point3(0, 2, 0);
+    scene.vup = vec3(0, 1, 0);
+    scene.defocus_angle = 0;
+    scene.background = colour(0, 0, 0);
+
+    return scene;
+}
+
 scene_info get_scene(int n) {
     switch (n) {
         case 1: return random_spheres();
@@ -198,6 +219,7 @@ scene_info get_scene(int n) {
         case 3: return earth();
         case 4: return two_perlin_spheres();
         case 5: return quads();
+        case 6: return simple_light();
     }
     return {};
 }
