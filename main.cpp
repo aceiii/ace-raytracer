@@ -24,6 +24,7 @@ struct scene_info {
     vec3 vup = vec3(0, 1, 0);
     double defocus_angle = 0;
     double focus_dist = 10;
+    colour background = { 0.5, 0.5, 0.5 };
 };
 
 static void set_logging_level(const std::string& level) {
@@ -97,6 +98,7 @@ scene_info random_spheres() {
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0.6;
     scene.focus_dist = 10.0;
+    scene.background = colour(0.7, 0.8, 1.0);
 
     return scene;
 }
@@ -118,6 +120,7 @@ scene_info two_spheres() {
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0;
     scene.focus_dist = 10.0;
+    scene.background = colour(0.7, 0.8, 1.0);
 
     return scene;
 }
@@ -139,6 +142,7 @@ scene_info earth() {
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0;
     scene.focus_dist = 10.0;
+    scene.background = colour(0.7, 0.8, 1.0);
 
     return scene;
 }
@@ -156,6 +160,7 @@ scene_info two_perlin_spheres() {
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0;
     scene.focus_dist = 10.0;
+    scene.background = colour(0.7, 0.8, 1.0);
 
     return scene;
 }
@@ -175,13 +180,13 @@ scene_info quads() {
     scene.world.add(make_shared<quad>(point3(-2,  3, 1), vec3(4, 0,  0), vec3(0, 0, 4), upper_orange));
     scene.world.add(make_shared<quad>(point3(-2, -3, 5), vec3(4, 0,  0), vec3(0, 0,-4), lower_teal));
 
-
     scene.vfov = 80;
     scene.lookfrom = point3(0, 0, 9);
     scene.lookat = point3(0, 0, 0);
     scene.vup = vec3(0, 1, 0);
     scene.defocus_angle = 0;
     scene.focus_dist = 10.0;
+    scene.background = colour(0.7, 0.8, 1.0);
 
     return scene;
 }
@@ -245,6 +250,7 @@ int main(int argc, char* argv[]) {
     cam.vup = scene.vup;
     cam.defocus_angle = scene.defocus_angle;
     cam.focus_dist = scene.focus_dist;
+    cam.background = scene.background;
     cam.init();
 
     auto dims = cam.get_image_dimensions();

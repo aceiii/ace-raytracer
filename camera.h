@@ -25,6 +25,7 @@ public:
     int     image_width = 100;
     int     samples_per_pixel = 10;
     int     max_depth = 10;
+    colour background;
 
     double vfov = 90;
     point3 lookfrom = point3(0, 0, -1); // center of camera
@@ -166,18 +167,22 @@ private:
             return colour(0, 0, 0);
         }
 
-        if (world.hit(r, interval(0.001, infinity), rec)) {
-            ray scattered;
-            colour attenuation;
-            if (rec.mat->scatter(r, rec, attenuation, scattered)) {
-                return attenuation * ray_colour(scattered, depth-1, world);
-            }
-            return colour(0, 0, 0);
+        // if ray hits nothing, return background colour
+        if (!world.hit(r, interval(0.001, infinity), rec)) {
+            return background;
         }
 
-        vec3 unit_direction = unit_vector(r.direction());
-        auto a = 0.5 * (unit_direction.y() + 1.0);
-        return lerp(a, colour(1.0, 1.0, 1.0), colour(0.5, 0.7, 1.0));
+        ray scattered;
+        colour attenuation;
+        colour colour_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
+        if (!rec.mat->scatter(r, rec, attenuation, scattered)) {
+            return colour_from_emission;
+        }
+
+        colour colour_from_scatter = attenuation * ray_colour(scattered, depth-1, world);
+
+        return colour_from_emission + colour_from_scatter;
     }
 
     ray get_ray(int i, int j) const {
