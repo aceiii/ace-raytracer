@@ -13,6 +13,7 @@ set(SOURCE_FILES
     sphere.cpp
     hittable_list.cpp
     bvh.cpp
+    quad.cpp
     raylib_window.cpp
     # stb_impl.cpp
 )
