@@ -5,6 +5,8 @@
 #include "colour.h"
 #include "texture.h"
 
+#include <algorithm>
+
 class hit_record;
 
 class material {
@@ -118,8 +120,11 @@ private:
 
 class diffuse_light : public material {
 public:
-    diffuse_light(shared_ptr<texture> a) : emit(a) {}
-    diffuse_light(colour c) : emit(make_shared<solid_colour>(c)) {}
+    diffuse_light(shared_ptr<texture> a) : emit(a) {
+        set_colour();
+    }
+
+    diffuse_light(colour c) : emit(make_shared<solid_colour>(c)), col(c) {}
 
     bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const override {
         return false;
@@ -129,8 +134,27 @@ public:
         return emit->value(u, v, p);
     }
 
+    colour get_colour() const override {
+        return col;
+    }
+
 private:
     shared_ptr<texture> emit;
+    colour col;
+
+    void set_colour() {
+        // sample colours from texture to generate a single averaged colour
+        int samples = 1000;
+        point3 p(0, 0, 0);
+        for (int i = 0; i < samples; i += 1) {
+            col = col + emit->value(random_double(0, 1), random_double(0, 1), p);
+        }
+        col = colour(
+            std::clamp(col.x() / static_cast<double>(samples), 0.0, 1.0),
+            std::clamp(col.y() / static_cast<double>(samples), 0.0, 1.0),
+            std::clamp(col.z() / static_cast<double>(samples), 0.0, 1.0)
+        );
+    }
 };
 
 #endif//__MATERIAL_H__
