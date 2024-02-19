@@ -5,6 +5,7 @@
 #include "sphere.h"
 #include "bvh.h"
 #include "texture.h"
+#include "quad.h"
 #include "raylib_window.h"
 
 #include <iostream>
@@ -159,13 +160,41 @@ scene_info two_perlin_spheres() {
     return scene;
 }
 
+scene_info quads() {
+    scene_info scene;
+
+    auto left_red = make_shared<lambertian>(colour(1.0, 0.2, 0.2));
+    auto back_green = make_shared<lambertian>(colour(0.2, 1.0, 0.2));
+    auto right_blue = make_shared<lambertian>(colour(0.2, 0.2, 1.0));
+    auto upper_orange = make_shared<lambertian>(colour(1.0, 0.5, 0.0));
+    auto lower_teal = make_shared<lambertian>(colour(0.2, 0.8, 0.8));
+
+    scene.world.add(make_shared<quad>(point3(-3, -2, 5), vec3(0, 0, -4), vec3(0, 4, 0), left_red));
+    scene.world.add(make_shared<quad>(point3(-2, -2, 0), vec3(4, 0,  0), vec3(0, 4, 0), back_green));
+    scene.world.add(make_shared<quad>(point3( 3, -2, 1), vec3(0, 0,  4), vec3(0, 4, 0), right_blue));
+    scene.world.add(make_shared<quad>(point3(-2,  3, 1), vec3(4, 0,  0), vec3(0, 0, 4), upper_orange));
+    scene.world.add(make_shared<quad>(point3(-2, -3, 5), vec3(4, 0,  0), vec3(0, 0,-4), lower_teal));
+
+
+    scene.vfov = 80;
+    scene.lookfrom = point3(0, 0, 9);
+    scene.lookat = point3(0, 0, 0);
+    scene.vup = vec3(0, 1, 0);
+    scene.defocus_angle = 0;
+    scene.focus_dist = 10.0;
+
+    return scene;
+}
+
 scene_info get_scene(int n) {
     switch (n) {
         case 1: return random_spheres();
         case 2: return two_spheres();
         case 3: return earth();
         case 4: return two_perlin_spheres();
+        case 5: return quads();
     }
+    return {};
 }
 
 int main(int argc, char* argv[]) {
