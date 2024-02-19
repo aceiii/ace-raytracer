@@ -212,6 +212,31 @@ scene_info simple_light() {
     return scene;
 }
 
+scene_info cornell_box() {
+    scene_info scene;
+
+    auto red = make_shared<lambertian>(colour(0.65, 0.05, 0.05));
+    auto white = make_shared<lambertian>(colour(0.73, 0.73, 0.73));
+    auto green = make_shared<lambertian>(colour(0.12, 0.45, 0.15));
+    auto light = make_shared<diffuse_light>(colour(15, 15, 15));
+
+    scene.world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green));
+    scene.world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
+    scene.world.add(make_shared<quad>(point3(343, 554, 332), vec3(-130, 0, 0), vec3(0, 0, -105), light));
+    scene.world.add(make_shared<quad>(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), white));
+    scene.world.add(make_shared<quad>(point3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), white));
+    scene.world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white));
+
+    scene.vfov = 40;
+    scene.lookfrom = point3(278, 278, -800);
+    scene.lookat = point3(278, 278, 0);
+    scene.vup = point3(0, 1, 0);
+    scene.defocus_angle = 0;
+    scene.background = colour(0, 0, 0);
+
+    return scene;
+}
+
 scene_info get_scene(int n) {
     switch (n) {
         case 1: return random_spheres();
@@ -220,6 +245,7 @@ scene_info get_scene(int n) {
         case 4: return two_perlin_spheres();
         case 5: return quads();
         case 6: return simple_light();
+        case 7: return cornell_box();
     }
     return {};
 }
