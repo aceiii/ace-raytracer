@@ -157,4 +157,32 @@ private:
     }
 };
 
+class isotropic : public material {
+public:
+    isotropic(colour c) : albedo(make_shared<solid_colour>(c)), col(c) {}
+    isotropic(shared_ptr<texture> a) : albedo(a) {
+        // sample colours from texture to generate a single averaged colour
+        int samples = 1000;
+        point3 p(0, 0, 0);
+        for (int i = 0; i < samples; i += 1) {
+            col = col + albedo->value(random_double(0, 1), random_double(0, 1), p);
+        }
+        col = col / samples;
+    }
+
+    bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const override {
+        scattered = ray(rec.p, random_unit_vector(), r_in.time());
+        attenuation = albedo->value(rec.u, rec.v, rec.p);
+        return true;
+    }
+
+    colour get_colour() const override {
+        return col;
+    }
+
+private:
+    shared_ptr<texture> albedo;
+    colour col;
+};
+
 #endif//__MATERIAL_H__
