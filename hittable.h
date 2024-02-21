@@ -38,4 +38,40 @@ public:
     virtual void draw() const = 0;
 };
 
+class translate : public hittable {
+public:
+    translate(shared_ptr<hittable> p, const vec3& displacement)
+        : object(p), offset(displacement)
+    {
+        bbox = object->bounding_box() + offset;
+    }
+
+    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+        // move ray backwards by offset
+        ray offset_r(r.origin() - offset, r.direction(), r.time());
+
+        // determine point of intersection
+        if (!object->hit(offset_r, ray_t, rec)) {
+            return false;
+        }
+
+        // moe intersection point forwards by offset
+        rec.p += offset;
+        return true;
+    }
+
+    aabb bounding_box() const override {
+        return bbox;
+    }
+
+    void draw() const override {
+        // object->draw();
+    }
+
+private:
+    shared_ptr<hittable> object;
+    vec3 offset;
+    aabb bbox;
+};
+
 #endif// __HITTABLE_H__
