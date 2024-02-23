@@ -59,17 +59,6 @@ inline bool update(tf::Executor &executor, camera &cam, const hittable_list& wor
     if (IsKeyPressed(KEY_SPACE)) {
         show_panel = !show_panel;
         enable_move = !show_panel && !cam.rendering();
-
-        // if (cam.rendering() && !cam.complete()) {
-        //     cam.cancel();
-        // } else if (cam.complete()) {
-        //     bmp->clear();
-        //     cam.cancel();
-        //     future.wait();
-        // } else {
-        //     bmp->clear();
-        //     future = executor.run(taskflow);
-        // }
     }
 
     if (!cam.rendering() && enable_move) {
@@ -190,7 +179,7 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     InitWindow(dims.width, dims.height, "Ace Raytracer!");
     SetExitKey(KEY_ESCAPE);
 
-    Image imgBlank = GenImageColor(dims.width, dims.height, RED);
+    Image imgBlank = GenImageColor(dims.width, dims.height, BLANK);
     renderedTexture = LoadTextureFromImage(imgBlank);
 
     cam3d.fovy = cam.vfov;
