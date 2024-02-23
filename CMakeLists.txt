@@ -7,16 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 set(EXE_NAME main)
 
-set(SOURCE_FILES
-    main.cpp
-    colour.cpp
-    sphere.cpp
-    hittable_list.cpp
-    bvh.cpp
-    quad.cpp
-    raylib_window.cpp
-    # stb_impl.cpp
-)
+file(GLOB_RECURSE SOURCE_FILES src/*.cpp src/*.h)
 
 set(TF_BUILD_TESTS OFF)
 set(TF_BUILD_EXAMPLES OFF)
