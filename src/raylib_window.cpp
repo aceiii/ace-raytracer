@@ -8,6 +8,7 @@ namespace {
     tf::Future<void> future;
 
     Camera3D cam3d;
+    Texture2D renderedTexture;
 
     float samples;
     float max_depth;
@@ -75,18 +76,9 @@ inline bool update(tf::Executor &executor, camera &cam, const hittable_list& wor
         UpdateCamera(&cam3d, CAMERA_FIRST_PERSON);
     }
 
-    return false;
-}
+    UpdateTexture(renderedTexture, bmp->data);
 
-inline void draw_rendered_bmp(std::shared_ptr<bitmap> bmp) {
-    for (int y = 0; y < GetScreenHeight(); y += 1) {
-        for (int x = 0; x < GetScreenWidth(); x += 1) {
-            auto &px = bmp->pixel_at(x, y);
-            if (px.a) {
-                DrawPixel(x, y, toRaylibColor(px));
-            }
-        }
-    }
+    return false;
 }
 
 inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world, std::shared_ptr<bitmap> bmp) {
@@ -109,9 +101,7 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
     world.draw();
     EndMode3D();
 
-    if (cam.rendering() || cam.complete()) {
-        draw_rendered_bmp(bmp);
-    }
+    DrawTexture(renderedTexture, 0, 0, WHITE);
 
     auto status_text = "Idle";
     auto button_text = "Render";
@@ -199,6 +189,9 @@ void raylib_window::run(camera& cam, const hittable_list& world, std::shared_ptr
     dimensions dims = cam.get_image_dimensions();
     InitWindow(dims.width, dims.height, "Ace Raytracer!");
     SetExitKey(KEY_ESCAPE);
+
+    Image imgBlank = GenImageColor(dims.width, dims.height, RED);
+    renderedTexture = LoadTextureFromImage(imgBlank);
 
     cam3d.fovy = cam.vfov;
     cam3d.position = toRaylibVector3(cam.lookfrom);
