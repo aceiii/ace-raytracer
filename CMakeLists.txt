@@ -17,20 +17,17 @@ set(ENKITS_BUILD_C_INTERFACE OFF)
 
 add_executable(${EXE_NAME} ${SOURCE_FILES})
 
-add_compile_definitions(SUPPORT_FILEFORMAT_JPG ON)
-add_compile_definitions(SUPPORT_FILEFORMAT_PNG ON)
-add_compile_definitions(SUPPORT_FILEFORMAT_TGA ON)
-add_compile_definitions(SUPPORT_FILEFORMAT_BMP ON)
-add_compile_definitions(SUPPORT_FILEFORMAT_HDR ON)
+# raylib
+include(cmake/raylib.cmake)
 
 add_subdirectory(external/spdlog)
 add_subdirectory(external/taskflow)
-add_subdirectory(external/raylib)
 add_subdirectory(external/argparse)
 
 # raygui
 add_compile_definitions(RAYGUI_IMPLEMENTATION TRUE)
 add_subdirectory(external/raygui/projects/CMake)
+
 
 # stb
 target_include_directories(${EXE_NAME} PRIVATE external/stb)
