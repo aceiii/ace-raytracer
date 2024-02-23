@@ -3,6 +3,8 @@
 
 #include "rtweekend.h"
 #include "colour.h"
+#include "hittable.h"
+#include "ray.h"
 #include "texture.h"
 
 #include <algorithm>

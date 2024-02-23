@@ -37,9 +37,3 @@ bool hittable_list::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
     return hit_anything;
 }
-
-void hittable_list::draw() const {
-    for (const auto& object : objects) {
-        object->draw();
-    }
-}

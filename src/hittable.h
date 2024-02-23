@@ -64,9 +64,7 @@ public:
         return bbox;
     }
 
-    void draw() const override {
-        // object->draw();
-    }
+    void draw() const override;
 
 private:
     shared_ptr<hittable> object;
@@ -141,9 +139,7 @@ public:
         return bbox;
     }
 
-    void draw() const override {
-        // object->draw();
-    }
+    void draw() const override;
 
 private:
     shared_ptr<hittable> object;

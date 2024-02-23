@@ -5,6 +5,7 @@
 #include "colour.h"
 #include "vec3.h"
 #include "perlin.h"
+#include "interval.h"
 #include "rtw_stb_image.h"
 
 class texture {

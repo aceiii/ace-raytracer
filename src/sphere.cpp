@@ -1,7 +1,6 @@
 #include "sphere.h"
 #include "material.h"
 
-#include <raylib.h>
 #include <spdlog/fmt/bundled/core.h>
 
 sphere::sphere(point3 _center, double _radius, shared_ptr<material> _material)
@@ -60,47 +59,6 @@ bool sphere::hit(const ray& r, interval ray_t, hit_record& rec) const {
 
 aabb sphere::bounding_box() const {
     return bbox;
-}
-
-void sphere::draw() const {
-    Vector3 ctr {
-        static_cast<float>(center1.x()),
-        static_cast<float>(center1.y()),
-        static_cast<float>(center1. z())
-    };
-
-    auto c = mat->get_colour();
-    Color col {
-        static_cast<uint8_t>(c.x() * 255.999),
-        static_cast<uint8_t>(c.y() * 255.999),
-        static_cast<uint8_t>(c.z() * 255.9999),
-        255,
-    };
-
-    int rings = 10;
-    int slices = 10;
-
-    if (radius > 99) {
-        rings = 20;
-        slices = 20;
-    }
-
-    if (radius > 499) {
-        rings = 40;
-        slices = 40;
-    }
-
-    DrawSphereEx(ctr, radius, rings, slices, col);
-
-    Vector3 size {
-        static_cast<float>(bbox.x.size()),
-        static_cast<float>(bbox.y.size()),
-        static_cast<float>(bbox.z.size()),
-    };
-
-    spdlog::trace("Drawing bbox at ({:0.2f},{:0.2f},{:0.2f}) with sides of size ({:0.2f},{:0.2f},{:0.2f})", ctr.x, ctr.y, ctr.z, size.x, size.y, size.z);
-
-    DrawCubeWiresV(ctr, size, MAROON);
 }
 
 void sphere::get_sphere_uv(const point3& p, double& u, double& v) {
