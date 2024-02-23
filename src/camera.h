@@ -14,6 +14,13 @@
 #include <spdlog/fmt/bundled/color.h>
 #include <taskflow/taskflow.hpp>
 
+struct chunk {
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+};
+
 struct dimensions {
     int width;
     int height;
@@ -53,28 +60,39 @@ public:
         stopped = false;
         done = false;
 
-        for (int y = 0; y < image_height && !stopped; y += 1) {
-            timer row_time;
+        std::vector<chunk> chunks;
+        int chunk_size = 32;
+        for (int y = 0; y < image_height; y += chunk_size) {
+            for (int x = 0; x < image_width; x += chunk_size) {
+                chunks.emplace_back(chunk{ x, y, std::min(x + chunk_size, image_width), std::min(y + chunk_size, image_height) });
+            }
+        }
 
-            for (int x = 0; x < image_width && !stopped; x += 1) {
-                auto task = subflow.emplace([&, x, y, out_bmp, this]() {
-                    if (stopped) {
-                        return;
-                    }
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(chunks.begin(), chunks.end(), g);
 
-                    colour pixel_colour(0, 0, 0);
-                    for (int sample = 0; sample < samples_per_pixel; sample += 1) {
-                        ray r = get_ray(x, y);
-                        pixel_colour += ray_colour(r, max_depth, world);
-                    }
+        for (auto& curr_chunk : chunks) {
+            for (int y = curr_chunk.y1; y < curr_chunk.y2 && !stopped; y += 1) {
+                timer row_time;
 
-                    pixel& px = out_bmp->pixel_at(x, y);
-                    write_colour(px, pixel_colour, samples_per_pixel);
-                    spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
-                });
+                for (int x = curr_chunk.x1; x < curr_chunk.x2 && !stopped; x += 1) {
+                    auto task = subflow.emplace([&, x, y, out_bmp, this]() {
+                        if (stopped) {
+                            return;
+                        }
 
-                auto rand_priority = static_cast<tf::TaskPriority>(random_integer(0, static_cast<int>(tf::TaskPriority::MAX) - 1));
-                task.priority(rand_priority);
+                        colour pixel_colour(0, 0, 0);
+                        for (int sample = 0; sample < samples_per_pixel; sample += 1) {
+                            ray r = get_ray(x, y);
+                            pixel_colour += ray_colour(r, max_depth, world);
+                        }
+
+                        pixel& px = out_bmp->pixel_at(x, y);
+                        write_colour(px, pixel_colour, samples_per_pixel);
+                        spdlog::trace("output pixel at ({}, {}) -> ({}, {}, {})", x, y, px.r, px.g, px.b);
+                    });
+                }
             }
         }
 
