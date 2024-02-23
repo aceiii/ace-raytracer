@@ -74,7 +74,7 @@ private:
 
 class rotate_y : public hittable {
 public:
-    rotate_y(shared_ptr<hittable> p, double angle) : object(p) {
+    rotate_y(shared_ptr<hittable> p, double angle) : object(p), angle(angle) {
         auto radians = degrees_to_radians(angle);
         sin_theta = sin(radians);
         cos_theta = cos(radians);
@@ -145,6 +145,7 @@ private:
     shared_ptr<hittable> object;
     double sin_theta;
     double cos_theta;
+    double angle;
     aabb bbox;
 };
 

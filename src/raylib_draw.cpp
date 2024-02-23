@@ -9,6 +9,7 @@
 #include "vec3.h"
 
 #include <raylib.h>
+#include <rlgl.h>
 
 void hittable_list::draw() const {
     for (const auto& object : objects) {
@@ -100,10 +101,23 @@ void sphere::draw() const {
 }
 
 void constant_medium::draw() const {
+    boundary->draw();
 }
 
 void translate::draw() const {
+    rlPushMatrix();
+    rlTranslatef(
+        static_cast<float>(offset.x()),
+        static_cast<float>(offset.y()),
+        static_cast<float>(offset.z())
+    );
+    object->draw();
+    rlPopMatrix();
 }
 
 void rotate_y::draw() const {
+    rlPushMatrix();
+    rlRotatef(angle, 0, 1, 0);
+    object->draw();
+    rlPopMatrix();
 }
