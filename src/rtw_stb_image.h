@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <cstdlib>
 #include <string>
+#include <filesystem>
 
 class rtw_image {
 public:
@@ -36,11 +37,12 @@ public:
 
     bool load(const std::string filename) {
         auto n = bytes_per_pixel;
-        data = stbi_load(filename.c_str(), &image_width, &image_height, &n, bytes_per_pixel);
+        auto filepath = std::filesystem::absolute(filename);
+        data = stbi_load(filepath.c_str(), &image_width, &image_height, &n, bytes_per_pixel);
         bytes_per_scanline = image_width * bytes_per_pixel;
 
         if (data == nullptr) {
-            spdlog::warn("Failed to load file at: {}", filename);
+            spdlog::warn("Failed to load file at: {}", filepath.string());
             spdlog::warn("Failure reason: {}", stbi_failure_reason());
             return false;
         }
