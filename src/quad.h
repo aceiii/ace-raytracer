@@ -71,7 +71,7 @@ public:
         return true;
     }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     point3 Q;

@@ -78,7 +78,7 @@ public:
         return boundary->bounding_box();
     }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     shared_ptr<hittable> boundary;

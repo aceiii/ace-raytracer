@@ -15,7 +15,7 @@ public:
 
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override;
     aabb bounding_box() const override;
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     point3 center1;

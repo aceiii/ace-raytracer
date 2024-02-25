@@ -19,7 +19,7 @@ public:
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override;
     inline aabb bounding_box() const override { return bbox; }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     aabb bbox;

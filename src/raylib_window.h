@@ -17,4 +17,8 @@ public:
     void run(camera& cam, const hittable_list& world, std::shared_ptr<bitmap> bmp);
 };
 
+struct draw_options {
+    bool enable_debug;
+};
+
 #endif//__RAYLIB_WINDOW_H__

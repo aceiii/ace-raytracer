@@ -15,6 +15,7 @@ namespace {
 
     bool show_panel = true;
     bool enable_move = false;
+    bool enable_debug = false;
 }
 
 static void set_logging_level(const std::string& level) {
@@ -87,7 +88,11 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
     ClearBackground(BLACK);
 
     BeginMode3D(cam3d);
-    world.draw();
+
+    draw_options options = {
+        enable_debug,
+    };
+    world.draw(options);
     EndMode3D();
 
     DrawTexture(renderedTexture, 0, 0, WHITE);
@@ -121,6 +126,9 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
             GuiLock();
             GuiSetState(STATE_DISABLED);
         }
+
+        GuiCheckBox(Rectangle{ static_cast<float>(item_x), static_cast<float>(item_y), 16, 16 }, "Enable Debug Drawing", &enable_debug);
+        item_y += 20 + 16;
 
         DrawText(TextFormat("Samples: %d", (int)samples), item_x, item_y, 10, BLACK);
         item_y += 10 + 8;

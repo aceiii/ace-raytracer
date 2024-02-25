@@ -60,7 +60,7 @@ public:
         return bbox;
     }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     shared_ptr<hittable> left;

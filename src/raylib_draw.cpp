@@ -7,34 +7,37 @@
 #include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
+#include "raylib_window.h"
 
 #include <raylib.h>
 #include <rlgl.h>
 
-void hittable_list::draw() const {
+void hittable_list::draw(const draw_options& options) const {
     for (const auto& object : objects) {
-        object->draw();
+        object->draw(options);
     }
 }
 
-void bvh_node::draw() const {
-    left->draw();
-    right->draw();
+void bvh_node::draw(const draw_options& options) const {
+    left->draw(options);
+    right->draw(options);
 
-    auto width = static_cast<float>(bbox.x.size());
-    auto height = static_cast<float>(bbox.y.size());
-    auto length = static_cast<float>(bbox.z.size());
+    if (options.enable_debug) {
+        auto width = static_cast<float>(bbox.x.size());
+        auto height = static_cast<float>(bbox.y.size());
+        auto length = static_cast<float>(bbox.z.size());
 
-    Vector3 pos {
-        static_cast<float>(bbox.x.min) + (width / 2),
-        static_cast<float>(bbox.y.min) + (height / 2),
-        static_cast<float>(bbox.z.min) + (length / 2),
-    };
+        Vector3 pos {
+            static_cast<float>(bbox.x.min) + (width / 2),
+            static_cast<float>(bbox.y.min) + (height / 2),
+            static_cast<float>(bbox.z.min) + (length / 2),
+        };
 
-    DrawCubeWires(pos, width, height, length, RAYWHITE);
+        DrawCubeWires(pos, width, height, length, RAYWHITE);
+    }
 }
 
-void quad::draw() const {
+void quad::draw(const draw_options& options) const {
     auto mat_col = mat->get_colour();
 
     Color col {
@@ -59,7 +62,7 @@ void quad::draw() const {
     DrawTriangleStrip3D(points, 4, col);
 }
 
-void sphere::draw() const {
+void sphere::draw(const draw_options& options) const {
     Vector3 ctr {
         static_cast<float>(center1.x()),
         static_cast<float>(center1.y()),
@@ -89,35 +92,37 @@ void sphere::draw() const {
 
     DrawSphereEx(ctr, radius, rings, slices, col);
 
-    Vector3 size {
-        static_cast<float>(bbox.x.size()),
-        static_cast<float>(bbox.y.size()),
-        static_cast<float>(bbox.z.size()),
-    };
+    if (options.enable_debug) {
+        Vector3 size {
+            static_cast<float>(bbox.x.size()),
+            static_cast<float>(bbox.y.size()),
+            static_cast<float>(bbox.z.size()),
+        };
 
-    spdlog::trace("Drawing bbox at ({:0.2f},{:0.2f},{:0.2f}) with sides of size ({:0.2f},{:0.2f},{:0.2f})", ctr.x, ctr.y, ctr.z, size.x, size.y, size.z);
+        spdlog::trace("Drawing bbox at ({:0.2f},{:0.2f},{:0.2f}) with sides of size ({:0.2f},{:0.2f},{:0.2f})", ctr.x, ctr.y, ctr.z, size.x, size.y, size.z);
 
-    DrawCubeWiresV(ctr, size, MAROON);
+        DrawCubeWiresV(ctr, size, MAROON);
+    }
 }
 
-void constant_medium::draw() const {
-    boundary->draw();
+void constant_medium::draw(const draw_options& options) const {
+    boundary->draw(options);
 }
 
-void translate::draw() const {
+void translate::draw(const draw_options& options) const {
     rlPushMatrix();
     rlTranslatef(
         static_cast<float>(offset.x()),
         static_cast<float>(offset.y()),
         static_cast<float>(offset.z())
     );
-    object->draw();
+    object->draw(options);
     rlPopMatrix();
 }
 
-void rotate_y::draw() const {
+void rotate_y::draw(const draw_options& options) const {
     rlPushMatrix();
     rlRotatef(angle, 0, 1, 0);
-    object->draw();
+    object->draw(options);
     rlPopMatrix();
 }

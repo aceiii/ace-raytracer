@@ -7,6 +7,8 @@
 
 #include <memory>
 
+struct draw_options;
+
 class material;
 
 class hit_record {
@@ -35,7 +37,7 @@ public:
     virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
     virtual aabb bounding_box() const = 0;
 
-    virtual void draw() const = 0;
+    virtual void draw(const draw_options& options) const = 0;
 };
 
 class translate : public hittable {
@@ -64,7 +66,7 @@ public:
         return bbox;
     }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     shared_ptr<hittable> object;
@@ -139,7 +141,7 @@ public:
         return bbox;
     }
 
-    void draw() const override;
+    void draw(const draw_options& options) const override;
 
 private:
     shared_ptr<hittable> object;
