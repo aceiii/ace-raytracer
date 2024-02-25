@@ -132,7 +132,7 @@ inline void draw(tf::Executor &executor, camera &cam, const hittable_list& world
 
         DrawText(TextFormat("Samples: %d", (int)samples), item_x, item_y, 10, BLACK);
         item_y += 10 + 8;
-        GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "255", (float*)&samples, 1, 255);
+        GuiSlider({ (float)item_x + 16, (float)item_y, (float)max_item_width - 32, 20 }, "1", "10000", (float*)&samples, 1, 10000);
         item_y += 20 + 16;
         DrawText(TextFormat("Max Depth: %d", (int)max_depth), item_x, item_y, 10, BLACK);
         item_y += 10 + 8;
