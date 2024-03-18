@@ -28,7 +28,7 @@ struct scene_info {
     colour background = { 0.5, 0.5, 0.5 };
 };
 
-static void set_logging_level(const std::string& level) {
+static bool set_logging_level(const std::string& level) {
     if (level == "trace") {
         spdlog::set_level(spdlog::level::trace);
     } else if (level == "debug") {
@@ -39,11 +39,14 @@ static void set_logging_level(const std::string& level) {
         spdlog::set_level(spdlog::level::warn);
     } else if (level == "err") {
         spdlog::set_level(spdlog::level::err);
+    } else if (level == "critical") {
+        spdlog::set_level(spdlog::level::critical);
     } else if (level == "off") {
         spdlog::set_level(spdlog::level::off);
     } else {
-        fmt::print("Invalid log: {}", level);
+        return false;
     }
+    return true;
 }
 
 scene_info random_spheres() {
@@ -378,7 +381,7 @@ int main(int argc, char* argv[]) {
     program.add_argument("--log-level")
         .help("Set the verbosity for logging")
         .default_value(std::string("info"))
-        .choices("trace", "debug", "info", "warn", "err", "critical", "off")
+        // .choices("trace", "debug", "info", "warn", "err", "critical", "off")
         .nargs(1);
 
     try {
@@ -389,7 +392,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    set_logging_level(program.get("--log-level"));
+    const std::string level = program.get("--log-level");
+    if (!set_logging_level(level)) {
+        std::cerr << fmt::format("Invalid argument \"{}\" - allowed options: {{trace, debug, info, warn, err, critical, off}}", level) << std::endl;
+        std::cerr << program;
+        return 1;
+    }
 
     spdlog::debug("Args:");
     spdlog::debug("  Num threads: {}", program.get<int>("--threads"));
@@ -397,7 +405,7 @@ int main(int argc, char* argv[]) {
 
     spdlog::info("Starting raytracer!");
 
-    auto scene = get_scene(1);
+    auto scene = get_scene(9);
     auto world = hittable_list(make_shared<bvh_node>(scene.world));
 
     camera cam;
